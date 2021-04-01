@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import "@progress/kendo-ui/js/messages/kendo.messages.fr-BE.js";
+//import "@progress/kendo-ui/js/messages/kendo.messages.fr-BE.js";
 import kendo from "@progress/kendo-ui/js/kendo.scheduler";
 import "@progress/kendo-ui/js/kendo.scheduler";
 import "@progress/kendo-theme-default/dist/all.css";
