@@ -1,30 +1,44 @@
 <template>
-  <div>
-    <!-- <kendo-schedulerdatasource
+  <div data-role="view" data-stretch="true">
+    <kendo-schedulerdatasource
       ref="remoteDataSource"
       :batch="true"
+      transport-read-url="http://localhost:3001/api/persons"
+      transport-read-data-type="json"
+      transport-create-url="http://localhost:3001/api/persons"
+      transport-create-type="POST"
+      transport-create-data-type="json"
+      :transport-parameter-map="parameterMap"
       schema-model-id="recordId"
       :schema-model-fields="fields"
     >
-    </kendo-schedulerdatasource> -->
+    </kendo-schedulerdatasource>
 
     <!-- data-source-ref="remoteDataSource" -->
     <kendo-scheduler
-      id="scheduler"
+      ref="scheduler"
+      data-source-ref="remoteDataSource"
       :date="kendoDate"
       :data-source="localDataSource"
-      :group="group"
-      :resources="resources"
+      :group="{ resources: ['Canaux'] }"
       :event-template="eventTemplate"
       :snap="false"
       :toolbar="['search']"
       :selectable="true"
       :footer="false"
+      :mobile="true"
       :editable-template="editTemplate"
-      schema-model-id="recordId"
-      :schema-model-fields="fields"
       @edit="onEdit"
+      @save="onSave"
     >
+      <kendo-scheduler-resource
+        :field="'canalId'"
+        :name="'Canaux'"
+        :title="'Canal'"
+        :data-source="arrayCanaux"
+      >
+      </kendo-scheduler-resource>
+
       <kendo-scheduler-view
         :type="'timeline'"
         :group="{ orientation: 'vertical' }"
@@ -34,7 +48,6 @@
         :selected-date-format="dateFormatTimeLine"
         :majorTimeHeaderTemplate="majorTimeHeaderTemplateTimeline"
       ></kendo-scheduler-view>
-
       <kendo-scheduler-view
         :type="'timelineWeek'"
         :group="{ orientation: 'vertical' }"
@@ -44,43 +57,122 @@
         :type="'timelineMonth'"
         :group="{ orientation: 'vertical' }"
       ></kendo-scheduler-view>
-      <kendo-scheduler-view
-        :type="'month'"
-        :group="{ date: true }"
-        :day-template="monthDayTemplate"
-      ></kendo-scheduler-view>
     </kendo-scheduler>
   </div>
 </template>
 
 <script>
-//import "@progress/kendo-ui/js/messages/kendo.messages.fr-BE.js";
-import kendo from "@progress/kendo-ui/js/kendo.scheduler";
-import "@progress/kendo-ui/js/kendo.scheduler";
-import "@progress/kendo-theme-default/dist/all.css";
-import { Scheduler } from "@progress/kendo-scheduler-vue-wrapper";
-import { KendoSchedulerDataSource } from "@progress/kendo-datasource-vue-wrapper";
-import { SchedulerView } from "@progress/kendo-scheduler-vue-wrapper";
 import $ from "jquery"; //eslint-disable-line
-import "@progress/kendo-scheduler-vue-wrapper";
+import kendo from "@progress/kendo-ui/js/kendo.scheduler";
+import {
+  Scheduler,
+  SchedulerView,
+  SchedulerResource,
+} from "@progress/kendo-scheduler-vue-wrapper";
+import { KendoSchedulerDataSource } from "@progress/kendo-datasource-vue-wrapper";
+import "@progress/kendo-ui/js/kendo.combobox.js"; //eslint-disable-line
+
+import "@progress/kendo-ui/js/messages/kendo.messages.fr-BE.js";
+
 export default {
   name: "HelloWorld",
   components: {
     "kendo-scheduler": Scheduler,
     "kendo-scheduler-view": SchedulerView,
+    "kendo-scheduler-resource": SchedulerResource,
     "kendo-schedulerdatasource": KendoSchedulerDataSource, //eslint-disable-line
   },
   props: {
     msg: String,
   },
   methods: {
+    parameterMap: function (data, operation) {
+      console.log("ParameterMap operation " + operation);
+      if (operation !== "read") {
+        //
+        return { models: kendo.stringify(data) };
+      }
+    },
     onEdit: function () {
       console.log("Event :: change");
+      this.initSelectCanaux();
+      this.initSelectRestrictions();
+      this.initSelectBcTypes();
+      this.initSelectPads();
+      this.initSelectAssets();
+      this.initSelectSeries();
+    },
+    initSelectCanaux: function () {
+      kendo.jQuery("#canaux").kendoComboBox({
+        placeholder: "Selectionner canal",
+        dataTextField: "text",
+        dataValueField: "value",
+        dataSource: {
+          data: this.arrayCanaux,
+        },
+      });
+    },
+    initSelectRestrictions: function () {
+      kendo.jQuery("#restrictions").kendoComboBox({
+        placeholder: "Selectionner restriction",
+        dataTextField: "text",
+        dataValueField: "value",
+        dataSource: {
+          data: this.arrayRestrictions,
+        },
+      });
+    },
+    initSelectBcTypes: function () {
+      kendo.jQuery("#bcTypes").kendoComboBox({
+        placeholder: "Selectionner bc type",
+        dataTextField: "text",
+        dataValueField: "value",
+        dataSource: {
+          data: this.arrayBcTypes,
+        },
+      });
+    },
+    initSelectPads: function () {
+      kendo.jQuery("#pads").kendoComboBox({
+        placeholder: "Selectionner pad",
+        dataTextField: "text",
+        dataValueField: "value",
+        dataSource: {
+          data: this.arrayPads,
+        },
+      });
+    },
+    initSelectAssets: function () {
+      kendo.jQuery("#assets").kendoComboBox({
+        placeholder: "Selectionner asset",
+        dataTextField: "text",
+        dataValueField: "value",
+        dataSource: {
+          data: this.arrayAssets,
+        },
+      });
+    },
+    initSelectSeries: function () {
+      kendo.jQuery("#series").kendoComboBox({
+        placeholder: "Selectionner serie",
+        dataTextField: "text",
+        dataValueField: "value",
+        dataSource: {
+          data: this.arraySeries,
+        },
+      });
+    },
+    onSave: function () {
+      console.log("Event :: save");
+    },
+    onCreate: function () {
+      console.log("function onCreate");
     },
     mainForm: function () {
       return `
-      <h3>Main</h3>
+      <h2><strong> Etat : <input name="etat" disabled data-bind="value:etat" /> </strong> </h2>
       <div name="main">
+      <h3>Main</h3>
           <div class="k-edit-label"><label for="title">Title</label></div>
           <div data-container-for="title" class="k-edit-field">
             <input type="text" class="k-textbox" name="title" required="required" data-bind="value:title">
@@ -108,6 +200,7 @@ export default {
           <input type="text" 
                 data-type="date" 
                 data-role="datetimepicker" 
+                data-interval="15"
                 data-bind="value:end,invisible:isAllDay" 
                 name="end" 
                 data-datecompare-msg="End date should be greater than or equal to the start date" />
@@ -122,47 +215,61 @@ export default {
           <span data-for="end" class="k-invalid-msg" style="display: none;"></span>
         </div>
 
+        <div class="k-edit-label"><label for="recurrenceRule">Repeter</label></div>
+        <div data-container-for="recurrenceRule" class="k-edit-field">
+          <div data-bind="value:recurrenceRule" name="recurrenceRule" data-role="recurrenceeditor"></div>
+        </div>
+
         <div class="k-edit-label"><label for="encodingUnit">Canaux </label></div>
           <div data-container-for="encondingUnit" class="k-edit-field">
-            <select id="canalId" data-bind="value:canalId" 
-                                data-role="dropdownlist"
-                                data-value-field="value" 
-                                data-text-field="text"
-                                data-source="arrayCanaux">
-            </select>
+            <input id="canaux" name="canalId" data-bind="value:canalId" style="width:100%;" />
           </div>
       </div>
         `;
     },
     sourceDestForm: function () {
       return `
-        <h3>Destination - Source</h3>
+        
         <div name="destinationSource">
+        <h3>Destination - Source</h3>
             <div class="k-edit-label"><label for="source">Source</label></div>
             <div data-container-for="source" class="k-edit-field">
               <input type="text" class="k-textbox" name="source" data-bind="value:source">
             </div>
             <div class="k-edit-label"><label for="typeSource">Type Source</label></div>
             <div data-container-for="typeSource" class="k-edit-field">
-              <label>Vers Adobe <input type="checkbox" data-type="boolean" data-bind="checked:isAdobe" name="adobe" /> </label>
-              <label>Pour web <input type="checkbox" data-bind="checked:isWeb" name="web" /></label>
-              <label>Vers Avid <input type="checkbox" data-bind="checked:isAvid" name="avid" /></label>
-              <label>Pour Archive <input type="checkbox" data-bind="checked:isArchive" name="archive" /></label>
-              <label>Vers Diffusion <input type="checkbox" data-bind="checked:isDiffusion" name="diffusion" /></label>
+              <table id="typeSources"> 
+                <thead>
+                  <tr>
+                    <th> <label for="labelAdobe"> Vers adobe </lable></th>
+                    <th> <label for="labelWeb"> Pour web </lable> </th>
+                    <th> <label for="labelAvid"> Vers Avid </lable> </th>
+                    <th> <label for="labelArchive"> Pour archive </lable></th>
+                    <th> <label for="labelDiffusion"> Vers diffusion </lable></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr> 
+                    <td> <input type="checkbox" data-type="boolean" data-bind="checked:isAdobe" name="adobe" id="labelAdobe" /> </td>
+                    <td> <input type="checkbox" data-bind="checked:isWeb" name="web" id="labelWeb" /> </td>
+                    <td> <input type="checkbox" data-bind="checked:isAvid" name="avid" id="labelAvid" /> </td>
+                    <td> <input type="checkbox" data-bind="checked:isArchive" name="archive" id="labelArchive" /> </td>
+                    <td> <input type="checkbox" data-bind="checked:isDiffusion" name="diffusion" id="labelDiffusion" /> </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
         </div>
       `;
     },
     restrictionForm: function () {
       return `
-        <h3>Restriction</h3>
+        
         <div name="restrictions">
+        <h3>Restriction</h3>
           <div class="k-edit-label"><label for="restrictions">Restrictions</label></div>
           <div data-container-for="restrictions" class="k-edit-field">
-            <select id="restrictionId" data-bind="value:restrictionId" data-role="dropdownlist"
-                      data-value-field="value" data-text-field="text">
-                <option value="1">Restriction 1</option>
-            </select>
+            <input id="restrictions" name="restrictionId" data-bind="value:restrictionId" />
           </div>
           <div class="k-edit-label"><label for="descrRestriction">Restriction</label></div>
           <div data-container-for="descrRestriction" class="k-edit-field">
@@ -174,8 +281,8 @@ export default {
     infoMedia: function () {
       return (
         `
-        <h3>Info Media</h3>
         <div name="infoMedia">
+        <h3>Info Media</h3>
           ` +
         this.bcType() +
         `
@@ -197,17 +304,11 @@ export default {
           </div>
           <div class="k-edit-label"><label for="validPAD">Validation PAD</label></div>
           <div data-container-for="validPAD" class="k-edit-field">
-            <select id="padId" data-bind="value:padId" data-role="dropdownlist"
-                      data-value-field="value" data-text-field="text">
-                <option value="1">PAD 1</option>
-            </select>
+            <input id="pads" name="padId" data-bind="value:padId" />
           </div>
           <div class="k-edit-label"><label for="natureAsset">Nature Asset</label></div>
           <div data-container-for="natureAsset" class="k-edit-field">
-            <select id="asset" data-bind="value:asset" data-role="dropdownlist"
-                      data-value-field="value" data-text-field="text">
-                <option value="1">Asset 1</option>
-            </select>
+            <input id="assets" name="assetId" data-bind="value:asset" />
           </div>
           <div class="k-edit-label"><label for="demandeur">Demandeur</label></div>
           <div data-container-for="demandeur" class="k-edit-field">
@@ -216,10 +317,7 @@ export default {
 
           <div class="k-edit-label"><label for="serie">Serie</label></div>
           <div data-container-for="serie" class="k-edit-field">
-            <select id="serieId" data-bind="value:serieId" data-role="dropdownlist"
-                      data-value-field="value" data-text-field="text">
-                <option value="1">Serie 1</option>
-            </select>
+            <input id="series" name="serieId" data-bind="value:serieId" />
           </div>
 
           <div class="k-edit-label"><label for="commentaire">Commentaire</label></div>
@@ -234,12 +332,7 @@ export default {
       return `
           <div class="k-edit-label"><label for="bcTypes">Bc Types</label></div>
           <div data-container-for="bcTypes" class="k-edit-field">
-            <select id="bcTypeId" data-bind="value:bcTypeId" data-role="dropdownlist"
-                      data-value-field="value" data-text-field="text">
-                <option value="1">BCTYPE 1</option>
-                <option value="2">BCTYPE 2</option>
-                <option value="3">BCTYPE 3</option>
-            </select>
+            <input id="bcTypes" name="bcTypeId" data-bind="value:bcTypeId" />
           </div>
           <div class="k-edit-label"><label for="bcUmid">BC UMID</label></div>
           <div data-container-for="bcUmid" class="k-edit-field">
@@ -282,20 +375,42 @@ export default {
     for (let i = 0; i < 15; i++) {
       arrayCanaux[i] = { text: "A-NOC-" + i + "", value: i };
     }
+    let arrayRestrictions = [];
+    for (let i = 0; i < 3; i++) {
+      arrayRestrictions[i] = { text: "Restriction " + i + "", value: i };
+    }
+    let arrayBcTypes = [];
+    for (let i = 0; i < 3; i++) {
+      arrayBcTypes[i] = { text: "BcType " + i + "", value: i };
+    }
+    let arrayPads = [];
+    for (let i = 0; i < 3; i++) {
+      arrayPads[i] = { text: "Pad " + i + "", value: i };
+    }
+    let arrayAssets = [];
+    for (let i = 0; i < 3; i++) {
+      arrayAssets[i] = { text: "Asset " + i + "", value: i };
+    }
+    let arraySeries = [];
+    for (let i = 0; i < 3; i++) {
+      arraySeries[i] = { text: "Serie " + i + "", value: i };
+    }
     let localDataSource = [
       {
         id: 1,
-        start: new Date("2021/3/31 08:00 AM"),
-        end: new Date("2021/3/31 09:00 AM"),
+        start: new Date("2021/4/09 08:00 AM"),
+        end: new Date("2021/4/09 09:00 AM"),
         title: "Interview",
         canalId: 2,
+        etat: "pendant",
       },
       {
         id: 2,
-        start: new Date("2021/3/31 11:00"),
-        end: new Date("2021/3/31 12:00"),
+        start: new Date("2021/4/09 11:00"),
+        end: new Date("2021/4/09 12:00"),
         title: "Meeting",
         canalId: 1,
+        etat: "fini",
       },
     ];
     let majorTimeHeaderTemplateTimeline = kendo.template(
@@ -305,20 +420,10 @@ export default {
               <p class="midMinutes"> #= midMinute # </p> 
             </strong>`
     );
-    let group = {
-      resources: ["Canaux"],
-    };
-    let resources = [
-      {
-        field: "canalId",
-        title: "Canal ID",
-        name: "Canaux",
-        dataSource: arrayCanaux,
-      },
-    ];
     let eventTemplate = `<div class="record-template"> 
                           #: kendo.toString(start, "hh:mm") # -
-                          #: kendo.toString(end, "hh:mm")# ~ 
+                          #: kendo.toString(end, "hh:mm")# ~
+                          #: avancement # ~
                           #: title #
                         </div>`;
     let dateFormatTimeLine = new Date().toLocaleDateString("fr-FR", {
@@ -333,17 +438,22 @@ export default {
 
     return {
       arrayCanaux,
+      arrayRestrictions,
+      arrayBcTypes,
+      arrayPads,
+      arrayAssets,
+      arraySeries,
       kendoDate,
       localDataSource,
       majorTimeHeaderTemplateTimeline,
       eventTemplate,
-      group,
-      resources,
       dateFormatTimeLine,
       monthDayTemplate,
       afficherSrcDest: false,
       fields: {
         recordId: { from: "RecordID", type: "number" },
+        etat: { from: "Etat", defaultValue: "Création" },
+        avancement: { from: "Avancement" },
         title: {
           from: "Title",
           defaultValue: "No title ",
@@ -351,6 +461,7 @@ export default {
         },
         start: { type: "date", from: "Start" },
         end: { type: "date", from: "End" },
+        recurrenceRule: { from: "RecurrenceRule" },
         canalId: { from: "CanalId" },
         source: { from: "Source" },
         isAdobe: { type: "boolean", from: "IsAdobe" },
@@ -374,10 +485,193 @@ export default {
       },
     };
   },
+  mounted() {
+    var isMobile = Boolean(kendo.support.mobileOS);
+    if (isMobile) {
+      this.$refs.scheduler.kendoWidget().resize();
+    }
+  },
 };
 </script>
 
 <style>
+h3 {
+  float: left;
+}
+
+div.k-widget.k-window {
+  /* toute la fenetre du formulaire */
+  width: 55% !important;
+  max-height: 750px;
+}
+
+div[name="recurrenceRule"] {
+  /* depassement des options de recurrences */
+  overflow-x: scroll;
+}
+
+.k-event {
+  /* les blocs des enregistrements programmés dans le scheduler */
+  height: fit-content !important;
+  max-height: 50px;
+}
+
+.k-edit-field {
+  text-align: left;
+}
+
+div.k-recur-view {
+  /* dans le formulaire, les champs qui apparaissent lors du choix de la recurrence */
+  font-style: italic;
+}
+
+#typeSources {
+  /* le champ type Source dans le formulaire */
+  border-collapse: collapse;
+  text-align: center !important;
+}
+#typeSources > thead th {
+  border-right: 1px solid black;
+  padding-right: 3px !important;
+  padding-left: 3px !important;
+}
+
+.k-edit-label {
+  overflow-wrap: break-word;
+}
+
+@media (min-width: 330px) and (max-width: 640px) {
+  table[class="k-scheduler-layout k-scheduler-timelineview"]
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(2)
+    .k-scheduler-table
+    > tbody
+    tr
+    td {
+    /* chaque case du scheduler */
+    height: 33px !important;
+  }
+
+  table.k-scheduler-layout.k-scheduler-timelineview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    .k-scheduler-table
+    > tbody
+    > tr
+    th {
+    /* chaque case des canaux */
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 2px;
+    padding-bottom: 1px;
+  }
+
+  table.k-scheduler-layout.k-scheduler-timelineview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    .k-scheduler-table
+    > tbody
+    > tr
+    th
+    span {
+    height: 41px !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+    font-size: 10px;
+  }
+
+  /* Formulaire > */
+
+  .k-edit-field,
+  .k-textbox,
+  .k-combobox {
+    float: left !important;
+    padding-left: 10px;
+  }
+  .k-combobox {
+    width: auto !important;
+  }
+  span[class="k-widget k-datetimepicker"] {
+    width: auto !important;
+    float: left;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1366px) {
+  table.k-scheduler-layout.k-scheduler-timelineview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    .k-scheduler-table
+    > tbody
+    > tr
+    th {
+    /* chaque case des canaux */
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 2px;
+    padding-bottom: 1px;
+  }
+
+  table.k-scheduler-layout.k-scheduler-timelineview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    .k-scheduler-table
+    > tbody
+    > tr
+    th
+    span {
+    height: 36px !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+    font-size: 10px;
+  }
+
+  /* Formulaire > */
+
+  .k-edit-field,
+  .k-textbox,
+  .k-combobox {
+    float: left !important;
+    padding-left: 10px;
+  }
+  .k-recur-view > .k-edit-field {
+    width: auto !important;
+  }
+  .k-combobox {
+    width: auto;
+  }
+  span[class="k-widget k-datetimepicker"] {
+    width: auto !important;
+    float: left;
+  }
+}
+
+@media (min-width: 1367px) and (max-width: 1600px) {
+  table.k-scheduler-layout.k-scheduler-timelineview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    table[class="k-scheduler-table"]
+    > tbody
+    tr
+    th {
+    /* vue web, chaque case des canaux */
+    white-space: normal;
+    overflow-wrap: break-word;
+    min-width: 80px;
+
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 2px;
+    padding-bottom: 1px;
+  }
+}
+
 .k-scheduler-content {
   overflow: auto;
 }
@@ -390,23 +684,55 @@ export default {
   > tbody
   > tr:nth-child(2)
   th {
+  /* chaque case des minutes du header */
   padding-left: 0px;
   padding-right: 0px;
   padding-bottom: 2px;
   padding-top: 2px;
 }
 
-.k-scheduler-table > tbody > tr:nth-child(1) {
-  height: auto;
+table.k-scheduler-layout.k-scheduler-timelineview
+  > tbody
+  > tr:nth-child(1)
+  > td:nth-child(1)
+  table[class="k-scheduler-table"]
+  > tbody
+  > tr:nth-child(2) {
+  /* vue web, rangé+colonne blanche vide qui prennent de la place pour rien */
+  display: none;
 }
-.record-template {
-  font-size: 10px;
+table.k-scheduler-layout.k-scheduler-timelineview
+  > tbody
+  > tr:nth-child(1)
+  > td:nth-child(2)
+  table[class="k-scheduler-table"]
+  > tbody
+  .k-scheduler-date-group {
+  /* header qui affiche la date d'ajrd'hui => ne sert a rien pour la vue timelineday */
+  display: none;
 }
 
+tr[class="k-mobile-header k-mobile-vertical-header"]
+  table[class="k-scheduler-table"]
+  > tbody
+  > tr:nth-child(1) {
+  /* vue mobile, rangé blanche vide qui prend de la place pour rien */
+  display: none;
+}
+
+.record-template {
+  /* dans le scheduler, les blocs des enregistrements programmés */
+  font-size: 10px;
+}
 .midMinutes {
+  /* dans le header du scheduler, les minutes intermediaires (10,30,50) */
   font-size: 8px;
   font-weight: 200;
   margin-top: auto;
   margin-bottom: auto;
+}
+
+div[name="recurrenceRule"] > div > span {
+  overflow: visible !important;
 }
 </style>

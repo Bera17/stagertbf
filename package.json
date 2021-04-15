@@ -8,12 +8,14 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@progress/kendo-datasource-vue-wrapper": "^2021.1.224",
-    "@progress/kendo-scheduler-vue-wrapper": "^2021.1.224",
+    "@progress/kendo-datasource-vue-wrapper": "^2021.1.330",
+    "@progress/kendo-dropdowns-vue-wrapper": "^2021.1.330",
+    "@progress/kendo-scheduler-vue-wrapper": "^2021.1.330",
     "@progress/kendo-theme-default": "^4.34.0",
-    "@progress/kendo-ui": "^2021.1.225",
-    "core-js": "^3.6.5",
+    "@progress/kendo-ui": "^2021.1.330",
+    "core-js": "^3.10.0",
     "jquery": "^3.6.0",
+    "kendo-ui-core": "^2021.1.330",
     "prettier": "^2.2.1",
     "vue": "^3.0.0"
   },
