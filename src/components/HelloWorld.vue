@@ -1,5 +1,4 @@
 <template>
-  <div data-role="view" data-stretch="true">
     <kendo-schedulerdatasource
       ref="remoteDataSource"
       :batch="true"
@@ -14,14 +13,11 @@
     >
     </kendo-schedulerdatasource>
 
-    <!-- data-source-ref="remoteDataSource" -->
     <kendo-scheduler
       ref="scheduler"
       data-source-ref="remoteDataSource"
-      :date="kendoDate"
       :data-source="localDataSource"
       :group="{ resources: ['Canaux'] }"
-      :event-template="eventTemplate"
       :snap="false"
       :toolbar="['search']"
       :selectable="true"
@@ -43,22 +39,25 @@
         :type="'timeline'"
         :group="{ orientation: 'vertical' }"
         :selected="true"
+        :event-template="eventTimelineDayTemplate"
         :major-tick="20"
         :column-width="15"
         :selected-date-format="dateFormatTimeLine"
-        :majorTimeHeaderTemplate="majorTimeHeaderTemplateTimeline"
+        :majorTimeHeaderTemplate="majorTimeHeaderTemplateTimelineDay"
       ></kendo-scheduler-view>
       <kendo-scheduler-view
         :type="'timelineWeek'"
         :group="{ orientation: 'vertical' }"
+        :event-template="eventTimelineWeekTemplate"
         :column-width="60"
+        :selected-date-format="dateFormatTimeLineWeek"
+        :majorTimeHeaderTemplate="majorTimeHeaderTemplateTimelineWeek"
       ></kendo-scheduler-view>
       <kendo-scheduler-view
         :type="'timelineMonth'"
         :group="{ orientation: 'vertical' }"
       ></kendo-scheduler-view>
     </kendo-scheduler>
-  </div>
 </template>
 
 <script>
@@ -73,6 +72,7 @@ import { KendoSchedulerDataSource } from "@progress/kendo-datasource-vue-wrapper
 import "@progress/kendo-ui/js/kendo.combobox.js"; //eslint-disable-line
 
 import "@progress/kendo-ui/js/messages/kendo.messages.fr-BE.js";
+import "@progress/kendo-ui/js/cultures/kendo.culture.fr-BE";
 
 export default {
   name: "HelloWorld",
@@ -170,7 +170,10 @@ export default {
     },
     mainForm: function () {
       return `
-      <h2><strong> Etat : <input name="etat" disabled data-bind="value:etat" /> </strong> </h2>
+      <h2>
+        <strong> Etat : <input name="etat" disabled data-bind="value:etat" /> </strong>
+        <strong> Avancement : <input name="avancement" disabled data-bind="value:avancement" />% </strong>
+      </h2>
       <div name="main">
       <h3>Main</h3>
           <div class="k-edit-label"><label for="title">Title</label></div>
@@ -186,11 +189,14 @@ export default {
                 data-interval="15"
                 data-type="date"
                 data-bind="value:start,invisible:isAllDay"
+                data-culture="fr-BE"
+                data-format="dd/MM/yyyy HH:mm"
+                data-component-type="modern"
                 name="start"/>
           <input type="text" 
                 data-type="date" 
                 data-role="datepicker" 
-                data-bind="value:start,visible:isAllDay" 
+                data-bind="value:start,visible:isAllDay"
                 name="start" />
           <span data-bind="text: startTimezone"></span>
           <span data-for="start" class="k-invalid-msg" style="display: none;"></span>
@@ -201,15 +207,18 @@ export default {
                 data-type="date" 
                 data-role="datetimepicker" 
                 data-interval="15"
-                data-bind="value:end,invisible:isAllDay" 
-                name="end" 
-                data-datecompare-msg="End date should be greater than or equal to the start date" />
+                data-bind="value:end,invisible:isAllDay"
+                data-culture="fr-BE"
+                data-format="dd/MM/yyyy HH:mm"
+                data-component-type="modern"
+                name="end"
+                data-datecompare-msg="La date de fin doit etre plus grande ou égale que la date de début" />
           <input type="text" 
                 data-type="date" 
                 data-role="datepicker" 
                 data-bind="value:end,visible:isAllDay" 
                 name="end" 
-                data-datecompare-msg="End date should be greater than or equal to the start date" />
+                data-datecompare-msg="La date de fin doit etre plus grande ou égale que la date de début" />
           <span data-bind="text: endTimezone"></span>
           <span data-bind="text: startTimezone, invisible: endTimezone"></span>
           <span data-for="end" class="k-invalid-msg" style="display: none;"></span>
@@ -292,12 +301,10 @@ export default {
                   data-role="datetimepicker"
                   data-interval="15"
                   data-type="date"
-                  data-bind="value:purgeDate,invisible:isAllDay"
-                  name="purgeDate"/>
-            <input type="text" 
-                  data-type="date" 
-                  data-role="datepicker" 
-                  data-bind="value:purgeDate,visible:isAllDay" 
+                  data-bind="value:purgeDate"
+                  data-culture="fr-BE"
+                  data-format="dd/MM/yyyy HH:mm"
+                  data-component-type="modern"
                   name="purgeDate" />
             <span data-bind="text: startTimezone"></span>
             <span data-for="purge" class="k-invalid-msg" style="display: none;"></span>
@@ -370,7 +377,7 @@ export default {
     },
   },
   data() {
-    let kendoDate = kendo.date.today();
+    let kendoDate = kendo.date.today()
     let arrayCanaux = [];
     for (let i = 0; i < 15; i++) {
       arrayCanaux[i] = { text: "A-NOC-" + i + "", value: i };
@@ -413,47 +420,71 @@ export default {
         etat: "fini",
       },
     ];
-    let majorTimeHeaderTemplateTimeline = kendo.template(
+    let majorTimeHeaderTemplateTimelineDay = kendo.template(
       `<strong style="font-size:9px">
               #=kendo.toString(date, 'H:mm')# 
               #var d=kendo.toString(date, 'mm'); midMinute= kendo.parseInt(d)+10#
               <p class="midMinutes"> #= midMinute # </p> 
             </strong>`
     );
-    let eventTemplate = `<div class="record-template"> 
+    let majorTimeHeaderTemplateTimelineWeek = kendo.template(
+      `<strong style="font-size:14px">
+              #=kendo.toString(date, 'HH:mm')#
+              #var d=kendo.toString(date, 'H'); midMinute= kendo.parseInt(d)+1#
+              <p class="midHours"> #=midMinute#:00 </p> 
+            </strong>`
+    );
+    let eventTimelineDayTemplate = `<div class="recordDayTemplate"> 
                           #: kendo.toString(start, "hh:mm") # -
                           #: kendo.toString(end, "hh:mm")# ~
-                          #: avancement # ~
+                          #: avancement #% ~
                           #: title #
                         </div>`;
+    let eventTimelineWeekTemplate = `<div class="recordWeekTemplate">
+                          #: avancement #% ~
+                          #: title  #
+                         </div>`
     let dateFormatTimeLine = new Date().toLocaleDateString("fr-FR", {
       weekday: "long",
       day: "numeric",
       month: "long",
       year: "numeric",
     }); // { 0:dddd, 'dd-MM-yyyy'}"
-    let monthDayTemplate = kendo.template(
-      "<strong>#= kendo.toString(date, 'ddd') #</strong>"
-    );
+    
+    let debutSemaine = kendo.date.dayOfWeek(kendoDate, 1, -1).toLocaleDateString("fr-FR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    let finSemainetemp = kendo.date.addDays(kendo.date.dayOfWeek(kendoDate, 1, 1),-1); 
+    let finSemaine = finSemainetemp.toLocaleDateString("fr-FR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    let dateFormatTimeLineWeek = " "+debutSemaine + " - " + finSemaine;
 
     return {
+      kendoDate,
       arrayCanaux,
       arrayRestrictions,
       arrayBcTypes,
       arrayPads,
       arrayAssets,
       arraySeries,
-      kendoDate,
       localDataSource,
-      majorTimeHeaderTemplateTimeline,
-      eventTemplate,
+      majorTimeHeaderTemplateTimelineDay,
+      majorTimeHeaderTemplateTimelineWeek,
+      eventTimelineDayTemplate,
+      eventTimelineWeekTemplate,
       dateFormatTimeLine,
-      monthDayTemplate,
-      afficherSrcDest: false,
+      dateFormatTimeLineWeek,
       fields: {
         recordId: { from: "RecordID", type: "number" },
         etat: { from: "Etat", defaultValue: "Création" },
-        avancement: { from: "Avancement" },
+        avancement: { from: "Avancement", defaultValue: "//" },
         title: {
           from: "Title",
           defaultValue: "No title ",
@@ -461,7 +492,9 @@ export default {
         },
         start: { type: "date", from: "Start" },
         end: { type: "date", from: "End" },
+        recurrenceId: { from: "RecurrenceID" },
         recurrenceRule: { from: "RecurrenceRule" },
+        recurrenceException: { from: "RecurrenceException" },
         canalId: { from: "CanalId" },
         source: { from: "Source" },
         isAdobe: { type: "boolean", from: "IsAdobe" },
@@ -495,23 +528,25 @@ export default {
 </script>
 
 <style>
-h3 {
-  float: left;
-}
-
 div.k-widget.k-window {
   /* toute la fenetre du formulaire */
-  width: 55% !important;
-  max-height: 750px;
+  width: auto !important;
+  max-height: 80%;
+  top:6.2% !important;
 }
 
 div[name="recurrenceRule"] {
   /* depassement des options de recurrences */
-  overflow-x: scroll;
+  overflow-x: auto;
+}
+
+.k-widget.k-combobox.k-combobox-clearable {
+  padding-left: 0px;
+  width: auto !important;
 }
 
 .k-event {
-  /* les blocs des enregistrements programmés dans le scheduler */
+  /* les enregistrements programmés dans le scheduler */
   height: fit-content !important;
   max-height: 50px;
 }
@@ -538,138 +573,6 @@ div.k-recur-view {
 
 .k-edit-label {
   overflow-wrap: break-word;
-}
-
-@media (min-width: 330px) and (max-width: 640px) {
-  table[class="k-scheduler-layout k-scheduler-timelineview"]
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(2)
-    .k-scheduler-table
-    > tbody
-    tr
-    td {
-    /* chaque case du scheduler */
-    height: 33px !important;
-  }
-
-  table.k-scheduler-layout.k-scheduler-timelineview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    .k-scheduler-table
-    > tbody
-    > tr
-    th {
-    /* chaque case des canaux */
-    padding-left: 2px;
-    padding-right: 2px;
-    padding-top: 2px;
-    padding-bottom: 1px;
-  }
-
-  table.k-scheduler-layout.k-scheduler-timelineview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    .k-scheduler-table
-    > tbody
-    > tr
-    th
-    span {
-    height: 41px !important;
-    white-space: normal;
-    overflow-wrap: break-word;
-    font-size: 10px;
-  }
-
-  /* Formulaire > */
-
-  .k-edit-field,
-  .k-textbox,
-  .k-combobox {
-    float: left !important;
-    padding-left: 10px;
-  }
-  .k-combobox {
-    width: auto !important;
-  }
-  span[class="k-widget k-datetimepicker"] {
-    width: auto !important;
-    float: left;
-  }
-}
-
-@media (min-width: 641px) and (max-width: 1366px) {
-  table.k-scheduler-layout.k-scheduler-timelineview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    .k-scheduler-table
-    > tbody
-    > tr
-    th {
-    /* chaque case des canaux */
-    padding-left: 2px;
-    padding-right: 2px;
-    padding-top: 2px;
-    padding-bottom: 1px;
-  }
-
-  table.k-scheduler-layout.k-scheduler-timelineview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    .k-scheduler-table
-    > tbody
-    > tr
-    th
-    span {
-    height: 36px !important;
-    white-space: normal;
-    overflow-wrap: break-word;
-    font-size: 10px;
-  }
-
-  /* Formulaire > */
-
-  .k-edit-field,
-  .k-textbox,
-  .k-combobox {
-    float: left !important;
-    padding-left: 10px;
-  }
-  .k-recur-view > .k-edit-field {
-    width: auto !important;
-  }
-  .k-combobox {
-    width: auto;
-  }
-  span[class="k-widget k-datetimepicker"] {
-    width: auto !important;
-    float: left;
-  }
-}
-
-@media (min-width: 1367px) and (max-width: 1600px) {
-  table.k-scheduler-layout.k-scheduler-timelineview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    table[class="k-scheduler-table"]
-    > tbody
-    tr
-    th {
-    /* vue web, chaque case des canaux */
-    white-space: normal;
-    overflow-wrap: break-word;
-    min-width: 80px;
-
-    padding-left: 2px;
-    padding-right: 2px;
-    padding-top: 2px;
-    padding-bottom: 1px;
-  }
 }
 
 .k-scheduler-content {
@@ -701,32 +604,41 @@ table.k-scheduler-layout.k-scheduler-timelineview
   /* vue web, rangé+colonne blanche vide qui prennent de la place pour rien */
   display: none;
 }
-table.k-scheduler-layout.k-scheduler-timelineview
+
+/* table.k-scheduler-layout.k-scheduler-timelineview
   > tbody
   > tr:nth-child(1)
   > td:nth-child(2)
   table[class="k-scheduler-table"]
   > tbody
   .k-scheduler-date-group {
-  /* header qui affiche la date d'ajrd'hui => ne sert a rien pour la vue timelineday */
+  header qui affiche la date d'ajrd'hui => ne sert a rien pour la vue timelineday
   display: none;
-}
+} */
 
-tr[class="k-mobile-header k-mobile-vertical-header"]
+/* tr[class="k-mobile-header k-mobile-vertical-header"]
   table[class="k-scheduler-table"]
   > tbody
   > tr:nth-child(1) {
-  /* vue mobile, rangé blanche vide qui prend de la place pour rien */
+  vue mobile, rangé blanche vide qui prend de la place pour rien
   display: none;
-}
+} */
 
-.record-template {
+.recordDayTemplate, .recordWeekTemplate {
   /* dans le scheduler, les blocs des enregistrements programmés */
   font-size: 10px;
 }
 .midMinutes {
-  /* dans le header du scheduler, les minutes intermediaires (10,30,50) */
+  /* vue timelineDay, dans le header du scheduler, les minutes intermediaires (10,30,50) */
   font-size: 8px;
+  font-weight: 200;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.midHours {
+  /* vue timelineWeek, dans le header du scheduler, les heures intermediaires */
+  font-size: 10px;
   font-weight: 200;
   margin-top: auto;
   margin-bottom: auto;
@@ -735,4 +647,221 @@ tr[class="k-mobile-header k-mobile-vertical-header"]
 div[name="recurrenceRule"] > div > span {
   overflow: visible !important;
 }
+
+@media (min-width: 330px) and (max-width: 640px) {
+  table[class="k-scheduler-layout k-scheduler-timelineview"]
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(2)
+    .k-scheduler-table
+    > tbody
+    tr
+    td {
+    /* vue timelineDay, chaque case du scheduler */
+    height: 33px !important;
+  }
+
+  table.k-scheduler-layout.k-scheduler-timelineview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    .k-scheduler-table
+    > tbody
+    > tr
+    th {
+    /* vue timelineDay, chaque case des canaux */
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 2px;
+    padding-bottom: 1px;
+  }
+
+  table.k-scheduler-layout.k-scheduler-timelineview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    .k-scheduler-table
+    > tbody
+    > tr
+    th
+    span {
+    height: 41px !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+    font-size: 10px;
+  }
+
+  table.k-scheduler-layout.k-scheduler-timelineWeekview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    .k-scheduler-table
+    > tbody tr th {
+    /* vue timelineWeek, chaque case des canaux */
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 2px;
+    padding-bottom: 1px;
+  }
+
+    table.k-scheduler-layout.k-scheduler-timelineWeekview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    .k-scheduler-table
+    > tbody
+    > tr
+    th
+    span {
+      /* vue timelineWeek, chaque case des canaux */
+    height: 40px !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+    font-size: 10px;
+  }
+
+  table.k-scheduler-layout.k-scheduler-timelineWeekview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(2)
+    .k-scheduler-table
+    > tbody
+    > tr
+    td {
+    /* vue timelineWeek, chaque case du scheduler */
+    /* height: 45px; */
+  }
+
+  /* Formulaire > */
+
+  .k-edit-field,
+  .k-textbox,
+  .k-combobox {
+    float: left !important;
+    padding-left: 10px;
+  }
+  
+  span[class="k-widget k-datetimepicker"] {
+    width: auto !important;
+    float: left;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1366px) {
+  table.k-scheduler-layout.k-scheduler-timelineview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    .k-scheduler-table
+    > tbody
+    > tr
+    th {
+    /* chaque case des canaux */
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 2px;
+    padding-bottom: 1px;
+  }
+
+  table.k-scheduler-layout.k-scheduler-timelineview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    .k-scheduler-table
+    > tbody
+    > tr
+    th
+    span {
+      /* vue timeline, chaque case des canaux */
+    height: 36px !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+    font-size: 10px;
+  }
+
+  table.k-scheduler-layout.k-scheduler-timelineWeekview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    .k-scheduler-table
+    > tbody tr th {
+    /* vue timelineWeek, chaque case des canaux */
+    padding-left: 2px;
+    padding-right: 1px;
+    padding-top: 2px;
+    padding-bottom: 1px;
+  }
+
+  table.k-scheduler-layout.k-scheduler-timelineWeekview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    .k-scheduler-table
+    > tbody
+    > tr
+    th
+    span {
+      /* vue timelineWeek, chaque case des canaux */
+    height: 45px !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+    font-size: 10px;
+  }
+
+  table.k-scheduler-layout.k-scheduler-timelineWeekview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(2)
+    .k-scheduler-table
+    > tbody
+    > tr
+    td {
+    /* vue timelineWeek, chaque case du scheduler */
+    /* height: 50px; */
+  }
+
+  /* Formulaire > */
+  .k-edit-field,
+  .k-textbox,
+  .k-combobox {
+    float: left !important;
+    padding-left: 10px;
+  }
+  .k-recur-view > .k-edit-field {
+    width: auto !important;
+  }
+  span[class="k-widget k-datetimepicker"] {
+    width: auto !important;
+    float: left;
+  }
+}
+
+@media (min-width: 1367px){
+  table.k-scheduler-layout.k-scheduler-timelineview
+    > tbody
+    > tr:nth-child(2)
+    > td:nth-child(1)
+    table[class="k-scheduler-table"]
+    > tbody
+    tr
+    th {
+    /* vue web, chaque case des canaux */
+    white-space: normal;
+    overflow-wrap: break-word;
+    min-width: 80px;
+    text-align: center;
+
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 2px;
+    padding-bottom: 1px;
+  }
+
+  /* Formulaire  */
+  h3 {
+    float: left;
+    border-bottom: ridge;
+  }
+}
+
 </style>
