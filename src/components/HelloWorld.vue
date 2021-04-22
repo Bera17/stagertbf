@@ -1,63 +1,61 @@
 <template>
-    <kendo-schedulerdatasource
-      ref="remoteDataSource"
-      :batch="true"
-      transport-read-url="http://localhost:3001/api/persons"
-      transport-read-data-type="json"
-      transport-create-url="http://localhost:3001/api/persons"
-      transport-create-type="POST"
-      transport-create-data-type="json"
-      :transport-parameter-map="parameterMap"
-      schema-model-id="recordId"
-      :schema-model-fields="fields"
-    >
-    </kendo-schedulerdatasource>
+  <kendo-schedulerdatasource
+    ref="remoteDataSource"
+    :batch="true"
+    transport-read-url="http://localhost:3001/api/persons"
+    transport-read-data-type="json"
+    transport-create-url="http://localhost:3001/api/persons"
+    transport-create-type="POST"
+    transport-create-data-type="json"
+    :transport-parameter-map="parameterMap"
+    schema-model-id="recordId"
+    :schema-model-fields="fields"
+  >
+  </kendo-schedulerdatasource>
 
-    <kendo-scheduler
-      ref="scheduler"
-      data-source-ref="remoteDataSource"
-      :data-source="localDataSource"
-      :group="{ resources: ['Canaux'] }"
-      :snap="false"
-      :toolbar="['search']"
-      :selectable="true"
-      :footer="false"
-      :mobile="true"
-      :editable-template="editTemplate"
-      @edit="onEdit"
-      @save="onSave"
+  <kendo-scheduler
+    ref="scheduler"
+    data-source-ref="remoteDataSource"
+    :data-source="localDataSource"
+    :group="{ resources: ['Canaux'] }"
+    :snap="false"
+    :toolbar="['search']"
+    :selectable="true"
+    :footer="false"
+    :mobile="true"
+    :editable-template="editTemplate"
+    @edit="onEdit"
+    @save="onSave"
+  >
+    <kendo-scheduler-resource
+      :field="'canalId'"
+      :name="'Canaux'"
+      :title="'Canal'"
+      :data-source="arrayCanaux"
     >
-      <kendo-scheduler-resource
-        :field="'canalId'"
-        :name="'Canaux'"
-        :title="'Canal'"
-        :data-source="arrayCanaux"
-      >
-      </kendo-scheduler-resource>
+    </kendo-scheduler-resource>
 
-      <kendo-scheduler-view
-        :type="'timeline'"
-        :group="{ orientation: 'vertical' }"
-        :selected="true"
-        :event-template="eventTimelineDayTemplate"
-        :major-tick="20"
-        :column-width="15"
-        :selected-date-format="dateFormatTimeLine"
-        :majorTimeHeaderTemplate="majorTimeHeaderTemplateTimelineDay"
-      ></kendo-scheduler-view>
-      <kendo-scheduler-view
-        :type="'timelineWeek'"
-        :group="{ orientation: 'vertical' }"
-        :event-template="eventTimelineWeekTemplate"
-        :column-width="60"
-        :selected-date-format="dateFormatTimeLineWeek"
-        :majorTimeHeaderTemplate="majorTimeHeaderTemplateTimelineWeek"
-      ></kendo-scheduler-view>
-      <kendo-scheduler-view
-        :type="'timelineMonth'"
-        :group="{ orientation: 'vertical' }"
-      ></kendo-scheduler-view>
-    </kendo-scheduler>
+    <kendo-scheduler-view
+      :type="'timeline'"
+      :group="{ orientation: 'vertical' }"
+      :selected="true"
+      :event-template="eventTimelineDayTemplate"
+      :major-tick="20"
+      :column-width="15"
+      :majorTimeHeaderTemplate="majorTimeHeaderTemplateTimelineDay"
+    ></kendo-scheduler-view>
+    <kendo-scheduler-view
+      :type="'timelineWeek'"
+      :group="{ orientation: 'vertical' }"
+      :event-template="eventTimelineWeekTemplate"
+      :column-width="60"
+      :majorTimeHeaderTemplate="majorTimeHeaderTemplateTimelineWeek"
+    ></kendo-scheduler-view>
+    <kendo-scheduler-view
+      :type="'timelineMonth'"
+      :group="{ orientation: 'vertical' }"
+    ></kendo-scheduler-view>
+  </kendo-scheduler>
 </template>
 
 <script>
@@ -180,17 +178,13 @@ export default {
           <div data-container-for="title" class="k-edit-field">
             <input type="text" class="k-textbox" name="title" required="required" data-bind="value:title">
           </div>
-        <div class="k-edit-label">
-          <label for="start">Start</label>
-        </div>
+        <div class="k-edit-label"> <label for="start">Start</label> </div>
         <div data-container-for="start" class="k-edit-field">
           <input type="text"
                 data-role="datetimepicker"
                 data-interval="15"
                 data-type="date"
                 data-bind="value:start,invisible:isAllDay"
-                data-culture="fr-BE"
-                data-format="dd/MM/yyyy HH:mm"
                 data-component-type="modern"
                 name="start"/>
           <input type="text" 
@@ -208,8 +202,6 @@ export default {
                 data-role="datetimepicker" 
                 data-interval="15"
                 data-bind="value:end,invisible:isAllDay"
-                data-culture="fr-BE"
-                data-format="dd/MM/yyyy HH:mm"
                 data-component-type="modern"
                 name="end"
                 data-datecompare-msg="La date de fin doit etre plus grande ou égale que la date de début" />
@@ -226,13 +218,16 @@ export default {
 
         <div class="k-edit-label"><label for="recurrenceRule">Repeter</label></div>
         <div data-container-for="recurrenceRule" class="k-edit-field">
-          <div data-bind="value:recurrenceRule" name="recurrenceRule" data-role="recurrenceeditor"></div>
-        </div>
-
-        <div class="k-edit-label"><label for="encodingUnit">Canaux </label></div>
-          <div data-container-for="encondingUnit" class="k-edit-field">
-            <input id="canaux" name="canalId" data-bind="value:canalId" style="width:100%;" />
+          <div name="recurrenceRule"
+                data-bind="value:recurrenceRule"  
+                data-role="recurrenceeditor" >
           </div>
+        </div>
+        
+        <div class="k-edit-label"><label for="encodingUnit">Canaux </label></div>
+        <div data-container-for="encondingUnit" class="k-edit-field">
+          <input id="canaux" name="canalId" data-bind="value:canalId" style="width:100%;" />
+        </div>
       </div>
         `;
     },
@@ -377,7 +372,7 @@ export default {
     },
   },
   data() {
-    let kendoDate = kendo.date.today()
+    let kendoDate = kendo.date.today();
     let arrayCanaux = [];
     for (let i = 0; i < 15; i++) {
       arrayCanaux[i] = { text: "A-NOC-" + i + "", value: i };
@@ -443,28 +438,7 @@ export default {
     let eventTimelineWeekTemplate = `<div class="recordWeekTemplate">
                           #: avancement #% ~
                           #: title  #
-                         </div>`
-    let dateFormatTimeLine = new Date().toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }); // { 0:dddd, 'dd-MM-yyyy'}"
-    
-    let debutSemaine = kendo.date.dayOfWeek(kendoDate, 1, -1).toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-    let finSemainetemp = kendo.date.addDays(kendo.date.dayOfWeek(kendoDate, 1, 1),-1); 
-    let finSemaine = finSemainetemp.toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-    let dateFormatTimeLineWeek = " "+debutSemaine + " - " + finSemaine;
+                         </div>`;
 
     return {
       kendoDate,
@@ -479,8 +453,6 @@ export default {
       majorTimeHeaderTemplateTimelineWeek,
       eventTimelineDayTemplate,
       eventTimelineWeekTemplate,
-      dateFormatTimeLine,
-      dateFormatTimeLineWeek,
       fields: {
         recordId: { from: "RecordID", type: "number" },
         etat: { from: "Etat", defaultValue: "Création" },
@@ -523,6 +495,8 @@ export default {
     if (isMobile) {
       this.$refs.scheduler.kendoWidget().resize();
     }
+    //
+    kendo.culture("fr-BE");
   },
 };
 </script>
@@ -532,7 +506,7 @@ div.k-widget.k-window {
   /* toute la fenetre du formulaire */
   width: auto !important;
   max-height: 80%;
-  top:6.2% !important;
+  top: 6.2% !important;
 }
 
 div[name="recurrenceRule"] {
@@ -624,7 +598,8 @@ table.k-scheduler-layout.k-scheduler-timelineview
   display: none;
 } */
 
-.recordDayTemplate, .recordWeekTemplate {
+.recordDayTemplate,
+.recordWeekTemplate {
   /* dans le scheduler, les blocs des enregistrements programmés */
   font-size: 10px;
 }
@@ -696,7 +671,9 @@ div[name="recurrenceRule"] > div > span {
     > tr:nth-child(2)
     > td:nth-child(1)
     .k-scheduler-table
-    > tbody tr th {
+    > tbody
+    tr
+    th {
     /* vue timelineWeek, chaque case des canaux */
     padding-left: 2px;
     padding-right: 2px;
@@ -704,7 +681,7 @@ div[name="recurrenceRule"] > div > span {
     padding-bottom: 1px;
   }
 
-    table.k-scheduler-layout.k-scheduler-timelineWeekview
+  table.k-scheduler-layout.k-scheduler-timelineWeekview
     > tbody
     > tr:nth-child(2)
     > td:nth-child(1)
@@ -713,7 +690,7 @@ div[name="recurrenceRule"] > div > span {
     > tr
     th
     span {
-      /* vue timelineWeek, chaque case des canaux */
+    /* vue timelineWeek, chaque case des canaux */
     height: 40px !important;
     white-space: normal;
     overflow-wrap: break-word;
@@ -740,7 +717,7 @@ div[name="recurrenceRule"] > div > span {
     float: left !important;
     padding-left: 10px;
   }
-  
+
   span[class="k-widget k-datetimepicker"] {
     width: auto !important;
     float: left;
@@ -772,7 +749,7 @@ div[name="recurrenceRule"] > div > span {
     > tr
     th
     span {
-      /* vue timeline, chaque case des canaux */
+    /* vue timeline, chaque case des canaux */
     height: 36px !important;
     white-space: normal;
     overflow-wrap: break-word;
@@ -784,7 +761,9 @@ div[name="recurrenceRule"] > div > span {
     > tr:nth-child(2)
     > td:nth-child(1)
     .k-scheduler-table
-    > tbody tr th {
+    > tbody
+    tr
+    th {
     /* vue timelineWeek, chaque case des canaux */
     padding-left: 2px;
     padding-right: 1px;
@@ -801,7 +780,7 @@ div[name="recurrenceRule"] > div > span {
     > tr
     th
     span {
-      /* vue timelineWeek, chaque case des canaux */
+    /* vue timelineWeek, chaque case des canaux */
     height: 45px !important;
     white-space: normal;
     overflow-wrap: break-word;
@@ -836,7 +815,7 @@ div[name="recurrenceRule"] > div > span {
   }
 }
 
-@media (min-width: 1367px){
+@media (min-width: 1367px) {
   table.k-scheduler-layout.k-scheduler-timelineview
     > tbody
     > tr:nth-child(2)
@@ -863,5 +842,4 @@ div[name="recurrenceRule"] > div > span {
     border-bottom: ridge;
   }
 }
-
 </style>
