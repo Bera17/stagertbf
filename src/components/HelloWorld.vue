@@ -2,12 +2,19 @@
   <kendo-schedulerdatasource
     ref="remoteDataSource"
     :batch="true"
-    transport-read-url="http://localhost:3001/api/persons"
+    transport-read-url="http://localhost:3100/api/records"
     transport-read-data-type="json"
-    transport-create-url="http://localhost:3001/api/persons"
+    
+    transport-create-url="http://localhost:3100/api/records"
     transport-create-type="POST"
     transport-create-data-type="json"
+    
+    transport-destroy-url="http://localhost:3100/api/records"
+    transport-destroy-type="DELETE"
+		transport-destroy-data-type="json"
+    
     :transport-parameter-map="parameterMap"
+    schema-data="records"
     schema-model-id="recordId"
     :schema-model-fields="fields"
   >
@@ -16,7 +23,6 @@
   <kendo-scheduler
     ref="scheduler"
     data-source-ref="remoteDataSource"
-    :data-source="localDataSource"
     :group="{ resources: ['Canaux'] }"
     :snap="false"
     :toolbar="['search']"
@@ -174,9 +180,9 @@ export default {
       </h2>
       <div name="main">
       <h3>Main</h3>
-          <div class="k-edit-label"><label for="title">Title</label></div>
-          <div data-container-for="title" class="k-edit-field">
-            <input type="text" class="k-textbox" name="title" required="required" data-bind="value:title">
+          <div class="k-edit-label"><label for="titre">Titre</label></div>
+          <div data-container-for="titre" class="k-edit-field">
+            <input type="text" class="k-textbox" name="titre" required="required" data-bind="value:titre">
           </div>
         <div class="k-edit-label"> <label for="start">Start</label> </div>
         <div data-container-for="start" class="k-edit-field">
@@ -226,7 +232,7 @@ export default {
         
         <div class="k-edit-label"><label for="encodingUnit">Canaux </label></div>
         <div data-container-for="encondingUnit" class="k-edit-field">
-          <input id="canaux" name="canalId" data-bind="value:canalId" style="width:100%;" />
+          <input id="canaux" name="canalid" data-bind="value:canalId" style="width:100%;" />
         </div>
       </div>
         `;
@@ -397,24 +403,6 @@ export default {
     for (let i = 0; i < 3; i++) {
       arraySeries[i] = { text: "Serie " + i + "", value: i };
     }
-    let localDataSource = [
-      {
-        id: 1,
-        start: new Date("2021/4/09 08:00 AM"),
-        end: new Date("2021/4/09 09:00 AM"),
-        title: "Interview",
-        canalId: 2,
-        etat: "pendant",
-      },
-      {
-        id: 2,
-        start: new Date("2021/4/09 11:00"),
-        end: new Date("2021/4/09 12:00"),
-        title: "Meeting",
-        canalId: 1,
-        etat: "fini",
-      },
-    ];
     let majorTimeHeaderTemplateTimelineDay = kendo.template(
       `<strong style="font-size:9px">
               #=kendo.toString(date, 'H:mm')# 
@@ -433,11 +421,11 @@ export default {
                           #: kendo.toString(start, "hh:mm") # -
                           #: kendo.toString(end, "hh:mm")# ~
                           #: avancement #% ~
-                          #: title #
+                          #: titre #
                         </div>`;
     let eventTimelineWeekTemplate = `<div class="recordWeekTemplate">
                           #: avancement #% ~
-                          #: title  #
+                          #: titre  #
                          </div>`;
 
     return {
@@ -448,26 +436,25 @@ export default {
       arrayPads,
       arrayAssets,
       arraySeries,
-      localDataSource,
       majorTimeHeaderTemplateTimelineDay,
       majorTimeHeaderTemplateTimelineWeek,
       eventTimelineDayTemplate,
       eventTimelineWeekTemplate,
       fields: {
-        recordId: { from: "RecordID", type: "number" },
-        etat: { from: "Etat", defaultValue: "Création" },
-        avancement: { from: "Avancement", defaultValue: "//" },
-        title: {
-          from: "Title",
-          defaultValue: "No title ",
+        recordId: { from: "recordId", type: "number" },
+        etat: { from: "etat", defaultValue: "Création" },
+        avancement: { from: "avancement", defaultValue: "0" },
+        titre: {
+          from: "titre",
+          defaultValue: "No titre ",
           validation: { required: true },
         },
-        start: { type: "date", from: "Start" },
-        end: { type: "date", from: "End" },
+        start: { type: "date", from: "start" },
+        end: { type: "date", from: "end" },
         recurrenceId: { from: "RecurrenceID" },
         recurrenceRule: { from: "RecurrenceRule" },
         recurrenceException: { from: "RecurrenceException" },
-        canalId: { from: "CanalId" },
+        canalId: { from: "canalId" },
         source: { from: "Source" },
         isAdobe: { type: "boolean", from: "IsAdobe" },
         isWeb: { type: "boolean", from: "IsWeb" },
