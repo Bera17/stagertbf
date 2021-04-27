@@ -8,6 +8,10 @@
     transport-create-url="http://localhost:3100/api/records"
     transport-create-type="POST"
     transport-create-data-type="json"
+
+    transport-update-url="http://localhost:3100/api/records"
+    transport-update-type="PUT"
+    transport-update-data-type="json"
     
     transport-destroy-url="http://localhost:3100/api/records"
     transport-destroy-type="DELETE"
@@ -17,6 +21,7 @@
     schema-data="records"
     schema-model-id="recordId"
     :schema-model-fields="fields"
+    schema-timezone="Europe/Brussels"
   >
   </kendo-schedulerdatasource>
 
@@ -75,8 +80,9 @@ import {
 import { KendoSchedulerDataSource } from "@progress/kendo-datasource-vue-wrapper";
 import "@progress/kendo-ui/js/kendo.combobox.js"; //eslint-disable-line
 
-import "@progress/kendo-ui/js/messages/kendo.messages.fr-BE.js";
+import "@progress/kendo-ui/js/messages/kendo.messages.fr-BE";
 import "@progress/kendo-ui/js/cultures/kendo.culture.fr-BE";
+import "@progress/kendo-ui/js/kendo.timezones"
 
 export default {
   name: "HelloWorld",
@@ -198,7 +204,6 @@ export default {
                 data-role="datepicker" 
                 data-bind="value:start,visible:isAllDay"
                 name="start" />
-          <span data-bind="text: startTimezone"></span>
           <span data-for="start" class="k-invalid-msg" style="display: none;"></span>
         </div>
         <div class="k-edit-label"><label for="end">End</label></div>
@@ -217,7 +222,6 @@ export default {
                 data-bind="value:end,visible:isAllDay" 
                 name="end" 
                 data-datecompare-msg="La date de fin doit etre plus grande ou égale que la date de début" />
-          <span data-bind="text: endTimezone"></span>
           <span data-bind="text: startTimezone, invisible: endTimezone"></span>
           <span data-for="end" class="k-invalid-msg" style="display: none;"></span>
         </div>
