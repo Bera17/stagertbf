@@ -1,4 +1,5 @@
 <template>
+<div id="scheduler" >
   <kendo-schedulerdatasource
     ref="remoteDataSource"
     :batch="true"
@@ -41,7 +42,6 @@
     <kendo-scheduler-resource
       :field="'canalId'"
       :name="'Canaux'"
-      :title="'Canal'"
       :data-source="arrayCanaux"
     >
     </kendo-scheduler-resource>
@@ -67,6 +67,7 @@
       :group="{ orientation: 'vertical' }"
     ></kendo-scheduler-view>
   </kendo-scheduler>
+</div>
 </template>
 
 <script>
@@ -83,6 +84,8 @@ import "@progress/kendo-ui/js/kendo.combobox.js"; //eslint-disable-line
 import "@progress/kendo-ui/js/messages/kendo.messages.fr-BE";
 import "@progress/kendo-ui/js/cultures/kendo.culture.fr-BE";
 import "@progress/kendo-ui/js/kendo.timezones"
+
+import * as canauxService from '../services/canauxApi'
 
 export default {
   name: "HelloWorld",
@@ -103,6 +106,18 @@ export default {
         return { models: kendo.stringify(data) };
       }
     },
+    refreshScheduler: function(){
+      const scheduler = kendo.jQuery("#scheduler")
+      console.log(scheduler);
+      const temp  = scheduler.data("kendoScheduler");
+      console.log(temp);
+      // temp.refresh()
+
+      if($(".k-scheduler-edit-form").length == 0) {
+        scheduler.dataSource.read();
+        scheduler.view(scheduler.view().name);
+      }
+    },
     onEdit: function () {
       console.log("Event :: change");
       this.initSelectCanaux();
@@ -118,7 +133,7 @@ export default {
         dataTextField: "text",
         dataValueField: "value",
         dataSource: {
-          data: this.arrayCanaux,
+          data: this.dbCanaux,
         },
       });
     },
@@ -435,6 +450,7 @@ export default {
     return {
       kendoDate,
       arrayCanaux,
+      dbCanaux : [],
       arrayRestrictions,
       arrayBcTypes,
       arrayPads,
@@ -488,7 +504,23 @@ export default {
     }
     //
     kendo.culture("fr-BE");
+
+    // setInterval(() => {
+    //   this.refreshScheduler()
+    // }, 9000);
   },
+  beforeMount(){
+    //Recuperer les canaux de la DB
+    canauxService.retrieve().then(response => {
+      this.dbCanaux = response.map(canal =>{
+        return ({text: canal.nom,
+                  value: canal.canalid,
+                  visible: canal.visible,
+                  type: canal.type
+                })
+      })
+    })
+  }
 };
 </script>
 
