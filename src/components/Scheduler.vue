@@ -1,5 +1,4 @@
 <template>
-<div id="scheduler" >
   <kendo-schedulerdatasource
     ref="remoteDataSource"
     :batch="true"
@@ -23,11 +22,13 @@
     schema-model-id="recordId"
     :schema-model-fields="fields"
     schema-timezone="Europe/Brussels"
+
   >
   </kendo-schedulerdatasource>
 
   <kendo-scheduler
     ref="scheduler"
+    id="scheduler"
     data-source-ref="remoteDataSource"
     :group="{ resources: ['Canaux'] }"
     :snap="false"
@@ -38,6 +39,7 @@
     :editable-template="editTemplate"
     @edit="onEdit"
     @save="onSave"
+    @dataBound="onDataBound"
   >
     <kendo-scheduler-resource
       :field="'canalId'"
@@ -67,7 +69,6 @@
       :group="{ orientation: 'vertical' }"
     ></kendo-scheduler-view>
   </kendo-scheduler>
-</div>
 </template>
 
 <script>
@@ -106,12 +107,33 @@ export default {
         return { models: kendo.stringify(data) };
       }
     },
+    onDataBound: function() {
+      let scheduler = kendo.jQuery("#scheduler").data("kendoScheduler");
+      let view = scheduler.view();
+      let events = scheduler.dataSource.view();
+      let eventElement;
+      let event;
+
+      for (var idx = 0, length = events.length; idx < length; idx++) {
+        event = events[idx];
+        if(event.etat === "Attente"){
+          eventElement = view.element.find("[data-uid=" + event.uid + "]");
+          eventElement.css("background-color", "grey");
+        }else if (event.etat === "Demarré") {
+          eventElement = view.element.find("[data-uid=" + event.uid + "]");
+          eventElement.css("background-color", "cyan");
+        }else if (event.etat === "Fini") {
+          eventElement = view.element.find("[data-uid=" + event.uid + "]");
+          eventElement.css("background-color", "green");
+        }else if (event.etat === "Erreur") {
+          eventElement = view.element.find("[data-uid=" + event.uid + "]");
+          eventElement.css("background-color", "red");
+        }
+      }
+    },
     refreshScheduler: function(){
-      const scheduler = kendo.jQuery("#scheduler")
-      console.log(scheduler);
-      const temp  = scheduler.data("kendoScheduler");
-      console.log(temp);
-      // temp.refresh()
+      let scheduler = kendo.jQuery("#scheduler").data("kendoScheduler");
+      console.log("rentre");
 
       if($(".k-scheduler-edit-form").length == 0) {
         scheduler.dataSource.read();
@@ -400,7 +422,10 @@ export default {
     let kendoDate = kendo.date.today();
     let arrayCanaux = [];
     for (let i = 0; i < 15; i++) {
-      arrayCanaux[i] = { text: "A-NOC-" + i + "", value: i };
+      if(i%2 ===0)
+        arrayCanaux[i] = { text: "A-NOC-" + i + "", value: i, type:"stream"};
+      else
+        arrayCanaux[i] = { text: "A-NOC-" + i + "", value: i, type:"sdi"};
     }
     let arrayRestrictions = [];
     for (let i = 0; i < 3; i++) {
@@ -422,8 +447,7 @@ export default {
     for (let i = 0; i < 3; i++) {
       arraySeries[i] = { text: "Serie " + i + "", value: i };
     }
-    let majorTimeHeaderTemplateTimelineDay = kendo.template(
-      `<strong style="font-size:9px">
+    let majorTimeHeaderTemplateTimelineDay = kendo.template(`<strong style="font-size:9px">
               #=kendo.toString(date, 'H:mm')# 
               #var d=kendo.toString(date, 'mm'); midMinute= kendo.parseInt(d)+10#
               <p class="midMinutes"> #= midMinute # </p> 
@@ -436,12 +460,14 @@ export default {
               <p class="midHours"> #=midMinute#:00 </p> 
             </strong>`
     );
-    let eventTimelineDayTemplate = `<div class="recordDayTemplate"> 
-                          #: kendo.toString(start, "hh:mm") # -
-                          #: kendo.toString(end, "hh:mm")# ~
-                          #: avancement #% ~
-                          #: titre #
-                        </div>`;
+    let eventTimelineDayTemplate = `
+        <div class="recordDayTemplate"> 
+          #: kendo.toString(start, "hh:mm") # -
+          #: kendo.toString(end, "hh:mm")# ~
+          #: avancement #% ~
+          #: titre #
+        </div>
+        `;
     let eventTimelineWeekTemplate = `<div class="recordWeekTemplate">
                           #: avancement #% ~
                           #: titre  #
@@ -450,7 +476,8 @@ export default {
     return {
       kendoDate,
       arrayCanaux,
-      dbCanaux : [],
+      dbCanaux: [],
+      canaux:[],
       arrayRestrictions,
       arrayBcTypes,
       arrayPads,
@@ -462,7 +489,7 @@ export default {
       eventTimelineWeekTemplate,
       fields: {
         recordId: { from: "recordId", type: "number" },
-        etat: { from: "etat", defaultValue: "Création" },
+        etat: { from: "etat", defaultValue: "Attente" },
         avancement: { from: "avancement", defaultValue: "0" },
         titre: {
           from: "titre",
@@ -514,11 +541,12 @@ export default {
     canauxService.retrieve().then(response => {
       this.dbCanaux = response.map(canal =>{
         return ({text: canal.nom,
-                  value: canal.canalid,
-                  visible: canal.visible,
-                  type: canal.type
+                  value: canal.canalId,
+                  // visible: canal.visible,
+                  // type: canal.type
                 })
       })
+      this.canaux= JSON.parse(JSON.stringify(this.dbCanaux))
     })
   }
 };
