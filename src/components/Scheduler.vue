@@ -39,6 +39,9 @@
     :editable-template="editTemplate"
     @edit="onEdit"
     @save="onSave"
+    @cancel="onCancel"
+    @move="onMove"
+    @resize="onResize"
     @dataBound="onDataBound"
   >
     <kendo-scheduler-resource
@@ -133,15 +136,35 @@ export default {
     },
     refreshScheduler: function(){
       let scheduler = kendo.jQuery("#scheduler").data("kendoScheduler");
-      console.log("rentre");
-
-      if($(".k-scheduler-edit-form").length == 0) {
+      console.log($(".k-scheduler-edit-form").length);
+      if(this.peutRefresh) {
         scheduler.dataSource.read();
         scheduler.view(scheduler.view().name);
       }
     },
+    onCreate: function () {
+      console.log("Event :: create");
+      this.peutRefresh=false;
+    },
+    onCancel: function(){
+      console.log("Event :: cancel")
+      this.peutRefresh=true;
+    },
+    onSave: function () {
+      console.log("Event :: save");
+      this.peutRefresh=true;
+    },
+    onMove: function(){
+      console.log("Event :: move");
+      this.peutRefresh=false;
+    },
+    onResize: function(){
+      console.log("Event :: resize");
+      this.peutRefresh=false;
+    },
     onEdit: function () {
-      console.log("Event :: change");
+      console.log("Event :: edit");
+      this.peutRefresh=false;
       this.initSelectCanaux();
       this.initSelectRestrictions();
       this.initSelectBcTypes();
@@ -208,12 +231,6 @@ export default {
           data: this.arraySeries,
         },
       });
-    },
-    onSave: function () {
-      console.log("Event :: save");
-    },
-    onCreate: function () {
-      console.log("function onCreate");
     },
     mainForm: function () {
       return `
@@ -472,7 +489,7 @@ export default {
                           #: avancement #% ~
                           #: titre  #
                          </div>`;
-
+    let peutRefresh=true;
     return {
       kendoDate,
       arrayCanaux,
@@ -487,6 +504,7 @@ export default {
       majorTimeHeaderTemplateTimelineWeek,
       eventTimelineDayTemplate,
       eventTimelineWeekTemplate,
+      peutRefresh,
       fields: {
         recordId: { from: "recordId", type: "number" },
         etat: { from: "etat", defaultValue: "Attente" },
@@ -532,9 +550,9 @@ export default {
     //
     kendo.culture("fr-BE");
 
-    // setInterval(() => {
-    //   this.refreshScheduler()
-    // }, 9000);
+    setInterval(() => {
+      this.refreshScheduler()
+    }, 9000);
   },
   beforeMount(){
     //Recuperer les canaux de la DB
