@@ -22,7 +22,6 @@
     schema-model-id="recordId"
     :schema-model-fields="fields"
     schema-timezone="Europe/Brussels"
-
   >
   </kendo-schedulerdatasource>
 
@@ -110,6 +109,32 @@ export default {
         return { models: kendo.stringify(data) };
       }
     },
+    scrollToCurrentTime: function(){
+      let time = new Date();
+      time.setHours(time.getHours());
+      time.setMinutes(0);
+      time.setSeconds(0);
+      time.setMilliseconds(0);
+      let targetTime = kendo.toString(time, "HH:mm");
+
+      let scheduler = kendo.jQuery("#scheduler").data("kendoScheduler");
+      let contentDiv = scheduler.element.find("div.k-scheduler-content");
+      let premiereRangee = contentDiv.find("tr")[0];
+      let casesTd  = $(premiereRangee).find("td")
+      
+      for (let i = 0; i < casesTd.length; i++) {
+        let element = $(casesTd[i]);
+        let slot = scheduler.slotByElement(element);
+        let slotTime = kendo.toString(slot.startDate, "HH:mm");
+        
+        if (targetTime === slotTime) {
+          contentDiv.scrollLeft(0);
+          let elementTop = element.offset().left;
+          let containerTop = contentDiv.offset().left;
+          contentDiv.scrollLeft( elementTop - containerTop );
+        }
+      }
+    },
     onDataBound: function() {
       let scheduler = kendo.jQuery("#scheduler").data("kendoScheduler");
       let view = scheduler.view();
@@ -133,10 +158,11 @@ export default {
           eventElement.css("background-color", "red");
         }
       }
+      
     },
     refreshScheduler: function(){
       let scheduler = kendo.jQuery("#scheduler").data("kendoScheduler");
-      console.log($(".k-scheduler-edit-form").length);
+      //console.log($(".k-scheduler-edit-form").length);
       if(this.peutRefresh) {
         scheduler.dataSource.read();
         scheduler.view(scheduler.view().name);
@@ -543,16 +569,18 @@ export default {
     };
   },
   mounted() {
+    kendo.culture("fr-BE");
+    //
     var isMobile = Boolean(kendo.support.mobileOS);
     if (isMobile) {
       this.$refs.scheduler.kendoWidget().resize();
     }
     //
-    kendo.culture("fr-BE");
+    setTimeout(() => this.scrollToCurrentTime(), 1) //lance la fonction trop rapidement donc il faut setTimeout
 
-    setInterval(() => {
-      this.refreshScheduler()
-    }, 9000);
+    // setInterval(() => {
+    //   this.refreshScheduler()
+    // }, 9000);
   },
   beforeMount(){
     //Recuperer les canaux de la DB
