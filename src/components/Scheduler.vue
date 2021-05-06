@@ -40,6 +40,7 @@
     @save="onSave"
     @cancel="onCancel"
     @move="onMove"
+    @add="onAdd"
     @resize="onResize"
     @dataBound="onDataBound"
   >
@@ -75,14 +76,14 @@
 
 <script>
 import $ from "jquery"; //eslint-disable-line
-import kendo from "@progress/kendo-ui/js/kendo.scheduler";
+import kendo from "@progress/kendo-ui/js/kendo.all";
 import {
   Scheduler,
   SchedulerView,
   SchedulerResource,
 } from "@progress/kendo-scheduler-vue-wrapper";
 import { KendoSchedulerDataSource } from "@progress/kendo-datasource-vue-wrapper";
-import "@progress/kendo-ui/js/kendo.combobox.js"; //eslint-disable-line
+import "@progress/kendo-ui/js/kendo.combobox.js";
 
 import "@progress/kendo-ui/js/messages/kendo.messages.fr-BE";
 import "@progress/kendo-ui/js/cultures/kendo.culture.fr-BE";
@@ -96,7 +97,7 @@ export default {
     "kendo-scheduler": Scheduler,
     "kendo-scheduler-view": SchedulerView,
     "kendo-scheduler-resource": SchedulerResource,
-    "kendo-schedulerdatasource": KendoSchedulerDataSource, //eslint-disable-line
+    "kendo-schedulerdatasource": KendoSchedulerDataSource,
   },
   props: {
     msg: String,
@@ -111,7 +112,7 @@ export default {
     },
     scrollToCurrentTime: function(){
       let time = new Date();
-      time.setHours(time.getHours());
+      time.setHours(time.getHours()-2);
       time.setMinutes(0);
       time.setSeconds(0);
       time.setMilliseconds(0);
@@ -158,7 +159,10 @@ export default {
           eventElement.css("background-color", "red");
         }
       }
+
+      setTimeout(() => this.scrollToCurrentTime(), 1) //lance la fonction trop rapidement donc il faut setTimeout
       
+      this.initContextMenu();
     },
     refreshScheduler: function(){
       let scheduler = kendo.jQuery("#scheduler").data("kendoScheduler");
@@ -168,7 +172,7 @@ export default {
         scheduler.view(scheduler.view().name);
       }
     },
-    onCreate: function () {
+    onAdd: function () {
       console.log("Event :: create");
       this.peutRefresh=false;
     },
@@ -177,7 +181,7 @@ export default {
       this.peutRefresh=true;
     },
     onSave: function () {
-      console.log("Event :: save");
+      console.log("Event :: save")
       this.peutRefresh=true;
     },
     onMove: function(){
@@ -198,11 +202,34 @@ export default {
       this.initSelectAssets();
       this.initSelectSeries();
     },
+    initContextMenu: function(){
+      let newelement = $(`<ul id="target"></ul>`);
+      kendo.jQuery(newelement).kendoContextMenu({
+          target: ".k-event",
+          select: function(e){
+            let index = $(e.item).index()
+            e.sender.options.dataSource[index].click(e)
+          },
+          dataSource: [
+            {
+              text: "Retry",
+              click: function(e){
+                let scheduler = kendo.jQuery("#scheduler").data("kendoScheduler");
+                let recordToUpdate = scheduler.dataSource.getByUid(e.target.dataset.uid);
+                recordToUpdate.set("etat", "Fini")
+                console.log("Retry2", recordToUpdate);
+                console.log("Retry3", scheduler.dataSource);
+                scheduler.dataSource.sync()
+              }
+            },
+          ]
+        })
+    },
     initSelectCanaux: function () {
       kendo.jQuery("#canaux").kendoComboBox({
         placeholder: "Selectionner canal",
-        dataTextField: "text",
-        dataValueField: "value",
+        dataTextField: "nom",
+        dataValueField: "canalId",
         dataSource: {
           data: this.dbCanaux,
         },
@@ -460,16 +487,27 @@ export default {
         this.metaEdit()
       );
     },
+    getCanauxDb:  function() {
+      canauxService.retrieve().then(response => {
+      this.arrayCanaux = response.map((canal) => {
+        return {
+          text: canal.nom,
+          value: canal.canalId,
+          type: canal.type,
+          visible: canal.visible
+        }
+      })
+      //Pour faire fonctionner le grouping server-side
+      var scheduler = this.$refs.scheduler.kendoWidget();
+      scheduler.resources[0].dataSource.data(this.arrayCanaux);
+      scheduler.view(scheduler.view().name);
+      //Pour la comboBox
+      this.dbCanaux = response;
+    })
+    }
   },
   data() {
     let kendoDate = kendo.date.today();
-    let arrayCanaux = [];
-    for (let i = 0; i < 15; i++) {
-      if(i%2 ===0)
-        arrayCanaux[i] = { text: "A-NOC-" + i + "", value: i, type:"stream"};
-      else
-        arrayCanaux[i] = { text: "A-NOC-" + i + "", value: i, type:"sdi"};
-    }
     let arrayRestrictions = [];
     for (let i = 0; i < 3; i++) {
       arrayRestrictions[i] = { text: "Restriction " + i + "", value: i };
@@ -518,7 +556,7 @@ export default {
     let peutRefresh=true;
     return {
       kendoDate,
-      arrayCanaux,
+      arrayCanaux: [],
       dbCanaux: [],
       canaux:[],
       arrayRestrictions,
@@ -542,11 +580,11 @@ export default {
         },
         start: { type: "date", from: "start" },
         end: { type: "date", from: "end" },
-        recurrenceId: { from: "RecurrenceID" },
-        recurrenceRule: { from: "RecurrenceRule" },
-        recurrenceException: { from: "RecurrenceException" },
+        recurrenceId: { from: "recurrenceId" },
+        recurrenceRule: { from: "recurrenceRule" },
+        recurrenceException: { from: "recurrenceException" },
         canalId: { from: "canalId" },
-        source: { from: "Source" },
+        source: { from: "source" },
         isAdobe: { type: "boolean", from: "IsAdobe" },
         isWeb: { type: "boolean", from: "IsWeb" },
         isAvide: { type: "boolean", from: "IsAvide" },
@@ -576,25 +614,12 @@ export default {
       this.$refs.scheduler.kendoWidget().resize();
     }
     //
-    setTimeout(() => this.scrollToCurrentTime(), 1) //lance la fonction trop rapidement donc il faut setTimeout
-
+    this.getCanauxDb();
+    //
     // setInterval(() => {
     //   this.refreshScheduler()
     // }, 9000);
   },
-  beforeMount(){
-    //Recuperer les canaux de la DB
-    canauxService.retrieve().then(response => {
-      this.dbCanaux = response.map(canal =>{
-        return ({text: canal.nom,
-                  value: canal.canalId,
-                  // visible: canal.visible,
-                  // type: canal.type
-                })
-      })
-      this.canaux= JSON.parse(JSON.stringify(this.dbCanaux))
-    })
-  }
 };
 </script>
 
