@@ -4,19 +4,15 @@
     :batch="true"
     transport-read-url="http://localhost:3100/api/records"
     transport-read-data-type="json"
-    
     transport-create-url="http://localhost:3100/api/records"
     transport-create-type="POST"
     transport-create-data-type="json"
-
     transport-update-url="http://localhost:3100/api/records"
     transport-update-type="PUT"
     transport-update-data-type="json"
-    
     transport-destroy-url="http://localhost:3100/api/records"
     transport-destroy-type="DELETE"
-		transport-destroy-data-type="json"
-    
+    transport-destroy-data-type="json"
     :transport-parameter-map="parameterMap"
     schema-data="records"
     schema-model-id="recordId"
@@ -24,7 +20,7 @@
     schema-timezone="Europe/Brussels"
   >
   </kendo-schedulerdatasource>
-
+  <bc-view @get-metadata-record="getTemplateRecord" />
   <kendo-scheduler
     ref="scheduler"
     id="scheduler"
@@ -50,7 +46,6 @@
       :data-source="arrayCanaux"
     >
     </kendo-scheduler-resource>
-
     <kendo-scheduler-view
       :type="'timeline'"
       :group="{ orientation: 'vertical' }"
@@ -75,8 +70,10 @@
 </template>
 
 <script>
+import "../styles/scheduler.css";
 import $ from "jquery"; //eslint-disable-line
 import kendo from "@progress/kendo-ui/js/kendo.all";
+
 import {
   Scheduler,
   SchedulerView,
@@ -87,13 +84,15 @@ import "@progress/kendo-ui/js/kendo.combobox.js";
 
 import "@progress/kendo-ui/js/messages/kendo.messages.fr-BE";
 import "@progress/kendo-ui/js/cultures/kendo.culture.fr-BE";
-import "@progress/kendo-ui/js/kendo.timezones"
+import "@progress/kendo-ui/js/kendo.timezones";
 
-import * as canauxService from '../services/canauxApi'
+import * as canauxService from "../services/canauxApi";
+import BcViewVue from "./BcView.vue";
 
 export default {
-  name: "HelloWorld",
+  name: "Scheduler",
   components: {
+    "bc-view": BcViewVue,
     "kendo-scheduler": Scheduler,
     "kendo-scheduler-view": SchedulerView,
     "kendo-scheduler-resource": SchedulerResource,
@@ -110,34 +109,34 @@ export default {
         return { models: kendo.stringify(data) };
       }
     },
-    scrollToCurrentTime: function(){
+    scrollToCurrentTime: function () {
       let time = new Date();
-      time.setHours(time.getHours()-2);
+      time.setHours(time.getHours() - 2);
       time.setMinutes(0);
       time.setSeconds(0);
       time.setMilliseconds(0);
       let targetTime = kendo.toString(time, "HH:mm");
 
-      let scheduler = kendo.jQuery("#scheduler").data("kendoScheduler");
+      let scheduler = this.$refs.scheduler.kendoWidget();
       let contentDiv = scheduler.element.find("div.k-scheduler-content");
       let premiereRangee = contentDiv.find("tr")[0];
-      let casesTd  = $(premiereRangee).find("td")
-      
+      let casesTd = $(premiereRangee).find("td");
+
       for (let i = 0; i < casesTd.length; i++) {
         let element = $(casesTd[i]);
         let slot = scheduler.slotByElement(element);
         let slotTime = kendo.toString(slot.startDate, "HH:mm");
-        
+
         if (targetTime === slotTime) {
           contentDiv.scrollLeft(0);
           let elementTop = element.offset().left;
           let containerTop = contentDiv.offset().left;
-          contentDiv.scrollLeft( elementTop - containerTop );
+          contentDiv.scrollLeft(elementTop - containerTop);
         }
       }
     },
-    onDataBound: function() {
-      let scheduler = kendo.jQuery("#scheduler").data("kendoScheduler");
+    onDataBound: function () {
+      let scheduler = this.$refs.scheduler.kendoWidget();
       let view = scheduler.view();
       let events = scheduler.dataSource.view();
       let eventElement;
@@ -145,56 +144,55 @@ export default {
 
       for (var idx = 0, length = events.length; idx < length; idx++) {
         event = events[idx];
-        if(event.etat === "Attente"){
+        if (event.etat === "Attente") {
           eventElement = view.element.find("[data-uid=" + event.uid + "]");
           eventElement.css("background-color", "grey");
-        }else if (event.etat === "Demarré") {
+        } else if (event.etat === "Demarré") {
           eventElement = view.element.find("[data-uid=" + event.uid + "]");
           eventElement.css("background-color", "cyan");
-        }else if (event.etat === "Fini") {
+        } else if (event.etat === "Fini") {
           eventElement = view.element.find("[data-uid=" + event.uid + "]");
           eventElement.css("background-color", "green");
-        }else if (event.etat === "Erreur") {
+        } else if (event.etat === "Erreur") {
           eventElement = view.element.find("[data-uid=" + event.uid + "]");
           eventElement.css("background-color", "red");
         }
       }
 
-      setTimeout(() => this.scrollToCurrentTime(), 1) //lance la fonction trop rapidement donc il faut setTimeout
-      
+      setTimeout(() => this.scrollToCurrentTime(), 1); //lance la fonction trop rapidement donc il faut setTimeout
+
       this.initContextMenu();
     },
-    refreshScheduler: function(){
-      let scheduler = kendo.jQuery("#scheduler").data("kendoScheduler");
-      //console.log($(".k-scheduler-edit-form").length);
-      if(this.peutRefresh) {
+    refreshScheduler: function () {
+      let scheduler = this.$refs.scheduler.kendoWidget();
+      if (this.peutRefresh) {
         scheduler.dataSource.read();
         scheduler.view(scheduler.view().name);
       }
     },
     onAdd: function () {
       console.log("Event :: create");
-      this.peutRefresh=false;
+      this.peutRefresh = false;
     },
-    onCancel: function(){
-      console.log("Event :: cancel")
-      this.peutRefresh=true;
+    onCancel: function () {
+      console.log("Event :: cancel");
+      this.peutRefresh = true;
     },
     onSave: function () {
-      console.log("Event :: save")
-      this.peutRefresh=true;
+      console.log("Event :: save");
+      this.peutRefresh = true;
     },
-    onMove: function(){
+    onMove: function () {
       console.log("Event :: move");
-      this.peutRefresh=false;
+      this.peutRefresh = false;
     },
-    onResize: function(){
+    onResize: function () {
       console.log("Event :: resize");
-      this.peutRefresh=false;
+      this.peutRefresh = false;
     },
     onEdit: function () {
       console.log("Event :: edit");
-      this.peutRefresh=false;
+      this.peutRefresh = false;
       this.initSelectCanaux();
       this.initSelectRestrictions();
       this.initSelectBcTypes();
@@ -202,28 +200,30 @@ export default {
       this.initSelectAssets();
       this.initSelectSeries();
     },
-    initContextMenu: function(){
+    initContextMenu: function () {
       let newelement = $(`<ul id="target"></ul>`);
       kendo.jQuery(newelement).kendoContextMenu({
-          target: ".k-event",
-          select: function(e){
-            let index = $(e.item).index()
-            e.sender.options.dataSource[index].click(e)
-          },
-          dataSource: [
-            {
-              text: "Retry",
-              click: function(e){
-                let scheduler = kendo.jQuery("#scheduler").data("kendoScheduler");
-                let recordToUpdate = scheduler.dataSource.getByUid(e.target.dataset.uid);
-                recordToUpdate.set("etat", "Fini")
-                console.log("Retry2", recordToUpdate);
-                console.log("Retry3", scheduler.dataSource);
-                scheduler.dataSource.sync()
-              }
+        target: ".k-event",
+        select: function (e) {
+          let index = $(e.item).index();
+          e.sender.options.dataSource[index].click(e);
+        },
+        dataSource: [
+          {
+            text: "Retry",
+            click: function (e) {
+              let scheduler = kendo.jQuery("#scheduler").data("kendoScheduler");
+              let recordToUpdate = scheduler.dataSource.getByUid(
+                e.target.dataset.uid
+              );
+              recordToUpdate.set("etat", "Fini");
+              console.log("Retry2", recordToUpdate);
+              console.log("Retry3", scheduler.dataSource);
+              scheduler.dataSource.sync();
             },
-          ]
-        })
+          },
+        ],
+      });
     },
     initSelectCanaux: function () {
       kendo.jQuery("#canaux").kendoComboBox({
@@ -487,24 +487,29 @@ export default {
         this.metaEdit()
       );
     },
-    getCanauxDb:  function() {
-      canauxService.retrieve().then(response => {
-      this.arrayCanaux = response.map((canal) => {
-        return {
-          text: canal.nom,
-          value: canal.canalId,
-          type: canal.type,
-          visible: canal.visible
-        }
-      })
-      //Pour faire fonctionner le grouping server-side
-      var scheduler = this.$refs.scheduler.kendoWidget();
-      scheduler.resources[0].dataSource.data(this.arrayCanaux);
-      scheduler.view(scheduler.view().name);
-      //Pour la comboBox
-      this.dbCanaux = response;
-    })
-    }
+    getCanauxDb: function () {
+      canauxService.retrieve().then((response) => {
+        this.arrayCanaux = response.map((canal) => {
+          return {
+            text: canal.nom,
+            value: canal.canalId,
+            type: canal.type,
+            visible: canal.visible,
+          };
+        });
+        //Pour faire fonctionner le grouping server-side
+        var scheduler = this.$refs.scheduler.kendoWidget();
+        scheduler.resources[0].dataSource.data(this.arrayCanaux);
+        scheduler.view(scheduler.view().name);
+        //Pour la comboBox
+        this.dbCanaux = response;
+      });
+    },
+    getTemplateRecord: function (data) {
+      this.$refs.scheduler
+        .kendoWidget()
+        .addEvent({ canalId: data.metaData.value });
+    },
   },
   data() {
     let kendoDate = kendo.date.today();
@@ -532,8 +537,7 @@ export default {
               #=kendo.toString(date, 'H:mm')# 
               #var d=kendo.toString(date, 'mm'); midMinute= kendo.parseInt(d)+10#
               <p class="midMinutes"> #= midMinute # </p> 
-            </strong>`
-    );
+            </strong>`);
     let majorTimeHeaderTemplateTimelineWeek = kendo.template(
       `<strong style="font-size:14px">
               #=kendo.toString(date, 'HH:mm')#
@@ -553,12 +557,12 @@ export default {
                           #: avancement #% ~
                           #: titre  #
                          </div>`;
-    let peutRefresh=true;
+    let peutRefresh = true;
     return {
       kendoDate,
       arrayCanaux: [],
       dbCanaux: [],
-      canaux:[],
+      canaux: [],
       arrayRestrictions,
       arrayBcTypes,
       arrayPads,
@@ -622,346 +626,3 @@ export default {
   },
 };
 </script>
-
-<style>
-div.k-widget.k-window {
-  /* toute la fenetre du formulaire */
-  width: auto !important;
-  max-height: 80%;
-  top: 6.2% !important;
-}
-
-div[name="recurrenceRule"] {
-  /* depassement des options de recurrences */
-  overflow-x: auto;
-}
-
-.k-widget.k-combobox.k-combobox-clearable {
-  padding-left: 0px;
-  width: auto !important;
-}
-
-.k-event {
-  /* les enregistrements programmés dans le scheduler */
-  height: fit-content !important;
-  max-height: 50px;
-}
-
-.k-edit-field {
-  text-align: left;
-}
-
-div.k-recur-view {
-  /* dans le formulaire, les champs qui apparaissent lors du choix de la recurrence */
-  font-style: italic;
-}
-
-#typeSources {
-  /* le champ type Source dans le formulaire */
-  border-collapse: collapse;
-  text-align: center !important;
-}
-#typeSources > thead th {
-  border-right: 1px solid black;
-  padding-right: 3px !important;
-  padding-left: 3px !important;
-}
-
-.k-edit-label {
-  overflow-wrap: break-word;
-}
-
-.k-scheduler-content {
-  overflow: auto;
-}
-
-.k-scheduler-timelineview
-  > tbody
-  > tr:first-child
-  > td:last-child
-  .k-scheduler-table
-  > tbody
-  > tr:nth-child(2)
-  th {
-  /* chaque case des minutes du header */
-  padding-left: 0px;
-  padding-right: 0px;
-  padding-bottom: 2px;
-  padding-top: 2px;
-}
-
-table.k-scheduler-layout.k-scheduler-timelineview
-  > tbody
-  > tr:nth-child(1)
-  > td:nth-child(1)
-  table[class="k-scheduler-table"]
-  > tbody
-  > tr:nth-child(2) {
-  /* vue web, rangé+colonne blanche vide qui prennent de la place pour rien */
-  display: none;
-}
-
-/* table.k-scheduler-layout.k-scheduler-timelineview
-  > tbody
-  > tr:nth-child(1)
-  > td:nth-child(2)
-  table[class="k-scheduler-table"]
-  > tbody
-  .k-scheduler-date-group {
-  header qui affiche la date d'ajrd'hui => ne sert a rien pour la vue timelineday
-  display: none;
-} */
-
-/* tr[class="k-mobile-header k-mobile-vertical-header"]
-  table[class="k-scheduler-table"]
-  > tbody
-  > tr:nth-child(1) {
-  vue mobile, rangé blanche vide qui prend de la place pour rien
-  display: none;
-} */
-
-.recordDayTemplate,
-.recordWeekTemplate {
-  /* dans le scheduler, les blocs des enregistrements programmés */
-  font-size: 10px;
-}
-.midMinutes {
-  /* vue timelineDay, dans le header du scheduler, les minutes intermediaires (10,30,50) */
-  font-size: 8px;
-  font-weight: 200;
-  margin-top: auto;
-  margin-bottom: auto;
-}
-
-.midHours {
-  /* vue timelineWeek, dans le header du scheduler, les heures intermediaires */
-  font-size: 10px;
-  font-weight: 200;
-  margin-top: auto;
-  margin-bottom: auto;
-}
-
-div[name="recurrenceRule"] > div > span {
-  overflow: visible !important;
-}
-
-@media (min-width: 330px) and (max-width: 640px) {
-  table[class="k-scheduler-layout k-scheduler-timelineview"]
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(2)
-    .k-scheduler-table
-    > tbody
-    tr
-    td {
-    /* vue timelineDay, chaque case du scheduler */
-    height: 33px !important;
-  }
-
-  table.k-scheduler-layout.k-scheduler-timelineview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    .k-scheduler-table
-    > tbody
-    > tr
-    th {
-    /* vue timelineDay, chaque case des canaux */
-    padding-left: 2px;
-    padding-right: 2px;
-    padding-top: 2px;
-    padding-bottom: 1px;
-  }
-
-  table.k-scheduler-layout.k-scheduler-timelineview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    .k-scheduler-table
-    > tbody
-    > tr
-    th
-    span {
-    height: 41px !important;
-    white-space: normal;
-    overflow-wrap: break-word;
-    font-size: 10px;
-  }
-
-  table.k-scheduler-layout.k-scheduler-timelineWeekview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    .k-scheduler-table
-    > tbody
-    tr
-    th {
-    /* vue timelineWeek, chaque case des canaux */
-    padding-left: 2px;
-    padding-right: 2px;
-    padding-top: 2px;
-    padding-bottom: 1px;
-  }
-
-  table.k-scheduler-layout.k-scheduler-timelineWeekview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    .k-scheduler-table
-    > tbody
-    > tr
-    th
-    span {
-    /* vue timelineWeek, chaque case des canaux */
-    height: 40px !important;
-    white-space: normal;
-    overflow-wrap: break-word;
-    font-size: 10px;
-  }
-
-  table.k-scheduler-layout.k-scheduler-timelineWeekview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(2)
-    .k-scheduler-table
-    > tbody
-    > tr
-    td {
-    /* vue timelineWeek, chaque case du scheduler */
-    /* height: 45px; */
-  }
-
-  /* Formulaire > */
-
-  .k-edit-field,
-  .k-textbox,
-  .k-combobox {
-    float: left !important;
-    padding-left: 10px;
-  }
-
-  span[class="k-widget k-datetimepicker"] {
-    width: auto !important;
-    float: left;
-  }
-}
-
-@media (min-width: 641px) and (max-width: 1366px) {
-  table.k-scheduler-layout.k-scheduler-timelineview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    .k-scheduler-table
-    > tbody
-    > tr
-    th {
-    /* chaque case des canaux */
-    padding-left: 2px;
-    padding-right: 2px;
-    padding-top: 2px;
-    padding-bottom: 1px;
-  }
-
-  table.k-scheduler-layout.k-scheduler-timelineview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    .k-scheduler-table
-    > tbody
-    > tr
-    th
-    span {
-    /* vue timeline, chaque case des canaux */
-    height: 36px !important;
-    white-space: normal;
-    overflow-wrap: break-word;
-    font-size: 10px;
-  }
-
-  table.k-scheduler-layout.k-scheduler-timelineWeekview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    .k-scheduler-table
-    > tbody
-    tr
-    th {
-    /* vue timelineWeek, chaque case des canaux */
-    padding-left: 2px;
-    padding-right: 1px;
-    padding-top: 2px;
-    padding-bottom: 1px;
-  }
-
-  table.k-scheduler-layout.k-scheduler-timelineWeekview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    .k-scheduler-table
-    > tbody
-    > tr
-    th
-    span {
-    /* vue timelineWeek, chaque case des canaux */
-    height: 45px !important;
-    white-space: normal;
-    overflow-wrap: break-word;
-    font-size: 10px;
-  }
-
-  table.k-scheduler-layout.k-scheduler-timelineWeekview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(2)
-    .k-scheduler-table
-    > tbody
-    > tr
-    td {
-    /* vue timelineWeek, chaque case du scheduler */
-    /* height: 50px; */
-  }
-
-  /* Formulaire > */
-  .k-edit-field,
-  .k-textbox,
-  .k-combobox {
-    float: left !important;
-    padding-left: 10px;
-  }
-  .k-recur-view > .k-edit-field {
-    width: auto !important;
-  }
-  span[class="k-widget k-datetimepicker"] {
-    width: auto !important;
-    float: left;
-  }
-}
-
-@media (min-width: 1367px) {
-  table.k-scheduler-layout.k-scheduler-timelineview
-    > tbody
-    > tr:nth-child(2)
-    > td:nth-child(1)
-    table[class="k-scheduler-table"]
-    > tbody
-    tr
-    th {
-    /* vue web, chaque case des canaux */
-    white-space: normal;
-    overflow-wrap: break-word;
-    min-width: 80px;
-    text-align: center;
-
-    padding-left: 2px;
-    padding-right: 2px;
-    padding-top: 2px;
-    padding-bottom: 1px;
-  }
-
-  /* Formulaire  */
-  h3 {
-    float: left;
-    border-bottom: ridge;
-  }
-}
-</style>
