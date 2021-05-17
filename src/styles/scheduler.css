@@ -297,6 +297,10 @@ div[name="recurrenceRule"] > div > span {
   }
 
   /* Formulaire > */
+  h3 {
+    float: left;
+    border-bottom: ridge;
+  }
   .k-edit-field,
   .k-textbox,
   .k-combobox {

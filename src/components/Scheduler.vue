@@ -20,7 +20,6 @@
     schema-timezone="Europe/Brussels"
   >
   </kendo-schedulerdatasource>
-  <bc-view @get-metadata-record="getTemplateRecord" />
   <kendo-scheduler
     ref="scheduler"
     id="scheduler"
@@ -40,6 +39,8 @@
     @resize="onResize"
     @dataBound="onDataBound"
   >
+  <!-- <bc-view @get-metadata-record="getTemplateRecord" /> -->
+  <md-view @get-metadata-record="getTemplateRecord" />
     <kendo-scheduler-resource
       :field="'canalId'"
       :name="'Canaux'"
@@ -88,11 +89,13 @@ import "@progress/kendo-ui/js/kendo.timezones";
 
 import * as canauxService from "../services/canauxApi";
 import BcViewVue from "./BcView.vue";
+import MDViewVue from './MDView.vue';
 
 export default {
   name: "Scheduler",
   components: {
-    "bc-view": BcViewVue,
+    "md-view": MDViewVue,
+    "bc-view": BcViewVue,//eslint-disable-line
     "kendo-scheduler": Scheduler,
     "kendo-scheduler-view": SchedulerView,
     "kendo-scheduler-resource": SchedulerResource,
@@ -502,7 +505,7 @@ export default {
         scheduler.resources[0].dataSource.data(this.arrayCanaux);
         scheduler.view(scheduler.view().name);
         //Pour la comboBox
-        this.dbCanaux = response;
+        this.dbCanaux = response
       });
     },
     getTemplateRecord: function (data) {
@@ -589,24 +592,24 @@ export default {
         recurrenceException: { from: "recurrenceException" },
         canalId: { from: "canalId" },
         source: { from: "source" },
-        isAdobe: { type: "boolean", from: "IsAdobe" },
-        isWeb: { type: "boolean", from: "IsWeb" },
-        isAvide: { type: "boolean", from: "IsAvide" },
-        isArchive: { type: "boolean", from: "IsArchive" },
-        isDiffusion: { type: "boolean", from: "IsDiffusion" },
-        restrictionId: { from: "RestrictionId" },
-        descrRestriction: { from: "DescrRestriction" },
-        bcTypeId: { from: "BcTypeId" },
-        bcUmid: { from: "BcUmid" },
-        bcTitle: { from: "BcTitle" },
-        bcMemo: { from: "BcMemo" },
-        purgeDate: { type: "date", from: "PurgeDate" },
-        padId: { from: "PadId" },
-        asset: { from: "Asset" },
-        demandeur: { from: "Demandeur" },
-        serieId: { from: "SerieId" },
-        commentaire: { from: "Commentaire" },
-        resume: { from: "Resume" },
+        isAdobe: { type: "boolean", from: "isAdobe" },
+        isWeb: { type: "boolean", from: "isWeb" },
+        isAvide: { type: "boolean", from: "isAvide" },
+        isArchive: { type: "boolean", from: "isArchive" },
+        isDiffusion: { type: "boolean", from: "isDiffusion" },
+        restrictionId: { from: "restrictionId" },
+        descrRestriction: { from: "descrRestriction" },
+        bcTypeId: { from: "bcTypeId" },
+        bcUmid: { from: "bcUmid" },
+        bcTitle: { from: "bcTitle" },
+        bcMemo: { from: "bcMemo" },
+        purgeDate: { type: "date", from: "purgeDate" },
+        padId: { from: "padId" },
+        asset: { from: "asset" },
+        demandeur: { from: "demandeur" },
+        serieId: { from: "serieId" },
+        commentaire: { from: "commentaire" },
+        resume: { from: "resume" },
       },
     };
   },
