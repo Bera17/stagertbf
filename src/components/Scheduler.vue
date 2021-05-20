@@ -3,6 +3,7 @@
     ref="remoteDataSource"
     :batch="true"
     transport-read-url="http://localhost:3100/api/records"
+    transport-read-type="GET"
     transport-read-data-type="json"
     transport-create-url="http://localhost:3100/api/records"
     transport-create-type="POST"
@@ -107,6 +108,13 @@ export default {
   methods: {
     parameterMap: function (data, operation) {
       console.log("ParameterMap operation " + operation);
+      if(operation === "read"){
+        let scheduler = this.$refs.scheduler.kendoWidget()
+            return{currentDay:{
+                    start:scheduler.view().startDate()
+                    }
+                  };
+      }
       if (operation !== "read") {
         //
         return { models: kendo.stringify(data) };
@@ -139,32 +147,12 @@ export default {
       }
     },
     onDataBound: function () {
-      let scheduler = this.$refs.scheduler.kendoWidget();
-      let view = scheduler.view();
-      let events = scheduler.dataSource.view();
-      let eventElement;
-      let event;
-
-      for (var idx = 0, length = events.length; idx < length; idx++) {
-        event = events[idx];
-        if (event.etat === "Attente") {
-          eventElement = view.element.find("[data-uid=" + event.uid + "]");
-          eventElement.css("background-color", "grey");
-        } else if (event.etat === "Demarré") {
-          eventElement = view.element.find("[data-uid=" + event.uid + "]");
-          eventElement.css("background-color", "cyan");
-        } else if (event.etat === "Fini") {
-          eventElement = view.element.find("[data-uid=" + event.uid + "]");
-          eventElement.css("background-color", "green");
-        } else if (event.etat === "Erreur") {
-          eventElement = view.element.find("[data-uid=" + event.uid + "]");
-          eventElement.css("background-color", "red");
-        }
-      }
+      this.eventsColor();
 
       setTimeout(() => this.scrollToCurrentTime(), 1); //lance la fonction trop rapidement donc il faut setTimeout
 
       this.initContextMenu();
+      this.eventListenerViewChanged();
     },
     refreshScheduler: function () {
       let scheduler = this.$refs.scheduler.kendoWidget();
@@ -219,10 +207,12 @@ export default {
               let recordToUpdate = scheduler.dataSource.getByUid(
                 e.target.dataset.uid
               );
-              recordToUpdate.set("etat", "Fini");
-              console.log("Retry2", recordToUpdate);
-              console.log("Retry3", scheduler.dataSource);
-              scheduler.dataSource.sync();
+              if(recordToUpdate.etat === "Error"){
+                recordToUpdate.set("etat", "Demarré");
+                scheduler.dataSource.sync();
+              }else {
+                console.log("Ne retry pas");
+              }
             },
           },
         ],
@@ -490,6 +480,30 @@ export default {
         this.metaEdit()
       );
     },
+    eventsColor: function(){
+      let scheduler = this.$refs.scheduler.kendoWidget();
+      let view = scheduler.view();
+      let events = scheduler.dataSource.view();
+      let eventElement;
+      let event;
+
+      for (var idx = 0, length = events.length; idx < length; idx++) {
+        event = events[idx];
+        if (event.etat === "Attente") {
+          eventElement = view.element.find("[data-uid=" + event.uid + "]");
+          eventElement.css("background-color", "grey");
+        } else if (event.etat === "Demarré") {
+          eventElement = view.element.find("[data-uid=" + event.uid + "]");
+          eventElement.css("background-color", "cyan");
+        } else if (event.etat === "Fini") {
+          eventElement = view.element.find("[data-uid=" + event.uid + "]");
+          eventElement.css("background-color", "green");
+        } else if (event.etat === "Erreur") {
+          eventElement = view.element.find("[data-uid=" + event.uid + "]");
+          eventElement.css("background-color", "red");
+        }
+      }
+    },
     getCanauxDb: function () {
       canauxService.retrieve().then((response) => {
         this.arrayCanaux = response.map((canal) => {
@@ -513,6 +527,20 @@ export default {
         .kendoWidget()
         .addEvent({ canalId: data.metaData.value });
     },
+    eventListenerViewChanged: function(){
+      //let dataSource = this.$refs.scheduler
+      document
+        .querySelector('button.k-button.k-button-icon.k-icon-button.k-nav-prev')
+        .addEventListener('click', () => {
+          this.$refs.scheduler.kendoWidget().dataSource.read()
+        })
+
+      document
+        .querySelector('button.k-button.k-button-icon.k-icon-button.k-nav-next')
+        .addEventListener('click', () => {
+          this.$refs.scheduler.kendoWidget().dataSource.read()
+        })
+    }
   },
   data() {
     let kendoDate = kendo.date.today();
