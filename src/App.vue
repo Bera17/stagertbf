@@ -1,5 +1,5 @@
 <template>
-  <Scheduler msg="Welcome to Your Vue.js App"/>
+  <Scheduler />
 </template>
 
 <script>

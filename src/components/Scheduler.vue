@@ -31,7 +31,7 @@
     :selectable="true"
     :footer="false"
     :mobile="true"
-    :editable-template="editTemplate"
+    :editable-template="recordTemplate"
     @edit="onEdit"
     @save="onSave"
     @cancel="onCancel"
@@ -40,8 +40,8 @@
     @resize="onResize"
     @dataBound="onDataBound"
   >
-  <!-- <bc-view @get-metadata-record="getTemplateRecord" /> -->
-  <md-view @get-metadata-record="getTemplateRecord" />
+  <bc-view @get-metadata-record="getMetaData" />
+  <md-view @get-metadata-record="getMetaData" />
     <kendo-scheduler-resource
       :field="'canalId'"
       :name="'Canaux'"
@@ -95,15 +95,12 @@ import MDViewVue from './MDView.vue';
 export default {
   name: "Scheduler",
   components: {
-    "md-view": MDViewVue,
+    "md-view": MDViewVue,//eslint-disable-line
     "bc-view": BcViewVue,//eslint-disable-line
     "kendo-scheduler": Scheduler,
     "kendo-scheduler-view": SchedulerView,
     "kendo-scheduler-resource": SchedulerResource,
     "kendo-schedulerdatasource": KendoSchedulerDataSource,
-  },
-  props: {
-    msg: String,
   },
   methods: {
     parameterMap: function (data, operation) {
@@ -471,7 +468,7 @@ export default {
         </div>
       `;
     },
-    editTemplate: function () {
+    recordTemplate: function () {
       return (
         this.mainForm() +
         this.sourceDestForm() +
@@ -517,29 +514,39 @@ export default {
         //Pour faire fonctionner le grouping server-side
         var scheduler = this.$refs.scheduler.kendoWidget();
         scheduler.resources[0].dataSource.data(this.arrayCanaux);
-        scheduler.view(scheduler.view().name);
+        scheduler.view(scheduler.viewName());
         //Pour la comboBox
         this.dbCanaux = response
       });
     },
-    getTemplateRecord: function (data) {
+    getMetaData: function (data) {
       this.$refs.scheduler
         .kendoWidget()
-        .addEvent({ canalId: data.metaData.value });
+        .addEvent({ 
+          isAdobe:  data.metaData.IsAdobe,
+          isWeb:  data.metaData.IsWeb,
+          isAvide: data.metaData.IsAvide,
+          isArchive:  data.metaData.IsArchive,
+          isDiffusion:  data.metaData.IsDiffusion,
+          restrictionId:  data.metaData.RestrictionId,
+          descrRestriction:  data.metaData.DescrRestriction,
+          bcTypeId:  data.metaData.BcTypeId,
+          bcUmid:  data.metaData.BcUmid,
+          bcTitle:  data.metaData.BcTitle,
+          bcMemo:  data.metaData.BcMemo,
+          purgeDate:  data.metaData.PurgeDate,
+          padId:  data.metaData.PadId,
+          asset:  data.metaData.Asset,
+          demandeur:  data.metaData.Demandeur,
+          serieId:  data.metaData.SerieId,
+          commentaire:  data.metaData.Commentaire,
+          resume:  data.metaData.Resume          
+          });
     },
     eventListenerViewChanged: function(){
-      //let dataSource = this.$refs.scheduler
-      document
-        .querySelector('button.k-button.k-button-icon.k-icon-button.k-nav-prev')
-        .addEventListener('click', () => {
-          this.$refs.scheduler.kendoWidget().dataSource.read()
-        })
-
-      document
-        .querySelector('button.k-button.k-button-icon.k-icon-button.k-nav-next')
-        .addEventListener('click', () => {
-          this.$refs.scheduler.kendoWidget().dataSource.read()
-        })
+        document.querySelectorAll("button.k-button.k-button-icon.k-icon-button.k-nav-prev, button.k-button.k-button-icon.k-icon-button.k-nav-next").forEach(result => 
+          result.addEventListener("click", () => this.$refs.scheduler.kendoWidget().dataSource.read() )
+        )
     }
   },
   data() {
@@ -578,22 +585,23 @@ export default {
     );
     let eventTimelineDayTemplate = `
         <div class="recordDayTemplate"> 
-          #: kendo.toString(start, "hh:mm") # -
-          #: kendo.toString(end, "hh:mm")# ~
+          #: kendo.toString(start, "HH:mm") # -
+          #: kendo.toString(end, "HH:mm")# ~
           #: avancement #% ~
           #: titre #
         </div>
         `;
-    let eventTimelineWeekTemplate = `<div class="recordWeekTemplate">
-                          #: avancement #% ~
-                          #: titre  #
-                         </div>`;
+    let eventTimelineWeekTemplate = `
+        <div class="recordWeekTemplate">
+          #: avancement #% ~
+          #: titre  #
+        </div>
+        `;
     let peutRefresh = true;
     return {
       kendoDate,
       arrayCanaux: [],
       dbCanaux: [],
-      canaux: [],
       arrayRestrictions,
       arrayBcTypes,
       arrayPads,

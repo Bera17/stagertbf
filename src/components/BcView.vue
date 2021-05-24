@@ -1,25 +1,24 @@
 <template>
   <div>
     <button class="k-button" @click="toggleDialog">
-      {{ visible ? "Close" : "Open" }} Window
+      {{ visible ? "Fermer" : "Afficher" }} metadonnées
     </button>
     <window
       v-if="visible"
       :title="'Metadonnées record'"
-      :left="left"
-      :top="top"
       :height="400"
       :modal="true"
       @close="toggleDialog"
       @move="handleMove"
     >
-      <button
-        v-for="(canal, index) in this.datasource"
-        :key="index"
-        @click="emitMetaData(index)"
+    <ul>
+      <li v-for="(canal, index) in this.datasource"
+          :key="index"
+          @click="emitMetaData(index)"
       >
-        {{ canal.text }}
-      </button>
+        {{ canal.BcUmid }} -- {{ canal.BcTitle }} -- {{ canal.SerieId }}
+      </li>
+    </ul>
     </window>
   </div>
 </template>
@@ -28,8 +27,9 @@
 import { Window } from "@progress/kendo-vue-dialogs";
 import kendo from "@progress/kendo-ui/js/kendo.window"; //eslint-disable-line
 import $ from "jquery"; //eslint-disable-line
+import "../styles/bc.css"
 
-import * as canauxService from "../services/canauxApi";
+import * as metadataService from "../services/metadataApi";
 
 export default {
   name: "BcView",
@@ -39,8 +39,6 @@ export default {
   data() {
     return {
       visible: false,
-      left: 300,
-      top: 250,
       datasource: [],
     };
   },
@@ -60,18 +58,9 @@ export default {
     },
   },
   mounted() {
-    canauxService.retrieve().then((response) => {
-      this.datasource = response.map((canal) => {
-        return {
-          text: canal.nom,
-          value: canal.canalId,
-          type: canal.type,
-          visible: canal.visible,
-        };
-      });
+    metadataService.retrieve().then((response) => {
+      this.datasource = response.mediaRequests;
     });
   },
 };
 </script>
-
-<style></style>
