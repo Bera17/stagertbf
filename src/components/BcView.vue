@@ -11,8 +11,8 @@
       @close="toggleDialog"
       @move="handleMove"
     >
-    <ul>
-      <li v-for="(canal, index) in this.datasource"
+    <ul class="metadataUl">
+      <li class="metadataLi" v-for="(canal, index) in this.datasource"
           :key="index"
           @click="emitMetaData(index)"
       >
