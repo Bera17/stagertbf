@@ -484,7 +484,7 @@ export default {
       let eventElement;
       let event;
 
-      for (var idx = 0, length = events.length; idx < length; idx++) {
+      for (let idx = 0, length = events.length; idx < length; idx++) {
         event = events[idx];
         if (event.etat === "Attente") {
           eventElement = view.element.find("[data-uid=" + event.uid + "]");
@@ -512,7 +512,7 @@ export default {
           };
         });
         //Pour faire fonctionner le grouping server-side
-        var scheduler = this.$refs.scheduler.kendoWidget();
+        let scheduler = this.$refs.scheduler.kendoWidget();
         scheduler.resources[0].dataSource.data(this.arrayCanaux);
         scheduler.view(scheduler.viewName());
         //Pour la comboBox
@@ -573,13 +573,13 @@ export default {
     }
     let majorTimeHeaderTemplateTimelineDay = kendo.template(`<strong style="font-size:9px">
               #=kendo.toString(date, 'H:mm')# 
-              #var d=kendo.toString(date, 'mm'); midMinute= kendo.parseInt(d)+10#
+              #let d=kendo.toString(date, 'mm'); midMinute= kendo.parseInt(d)+10#
               <p class="midMinutes"> #= midMinute # </p> 
             </strong>`);
     let majorTimeHeaderTemplateTimelineWeek = kendo.template(
       `<strong style="font-size:14px">
               #=kendo.toString(date, 'HH:mm')#
-              #var d=kendo.toString(date, 'H'); midMinute= kendo.parseInt(d)+1#
+              #let d=kendo.toString(date, 'H'); midMinute= kendo.parseInt(d)+1#
               <p class="midHours"> #=midMinute#:00 </p> 
             </strong>`
     );
@@ -652,7 +652,7 @@ export default {
   mounted() {
     kendo.culture("fr-BE");
     //
-    var isMobile = Boolean(kendo.support.mobileOS);
+    let isMobile = Boolean(kendo.support.mobileOS);
     if (isMobile) {
       this.$refs.scheduler.kendoWidget().resize();
     }
