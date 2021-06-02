@@ -1,53 +1,40 @@
 <template>
-  <div id="nav" v-if="isAuthenticated">
-    <fab
-            :text="'Se deconnecter'"
-            :align="{ horizontal: 'end', vertical: 'top' }"
-            :positionMode="'absolute'"
-            @click="handleLogout"
-    />
+  <div id="nav" v-if="this.$store.getters.isLogged">
+    <k-button id="logoutButton"
+              @click="handleLogout" 
+              :icon="'logout'" 
+              :look="'outline'" ></k-button>
   </div>
-  <scheduler v-if="isAuthenticated" />
-  <auth-view v-else @submit="handleLogin"/>
+  <router-view></router-view>
 </template>
 
 <script>
-import AuthView from './components/AuthView.vue'
-import Scheduler from './components/Scheduler.vue'
-import { FloatingActionButton } from '@progress/kendo-vue-buttons';
-
-import * as auth from './services/authentification'
+import { Button } from '@progress/kendo-vue-buttons';
 
 export default {
   name: 'App',
   components: {
-    "scheduler": Scheduler,
-    "auth-view": AuthView,
-    fab: FloatingActionButton,
+    'k-button': Button,
   },
   data(){
-    return {
-      isAuthenticated: null,
-    }
+    return {}
   },
   methods:{
-    handleLogin: function(result){
-      console.log(result);
-      console.log(result.account);
-      this.isAuthenticated!==undefined ? result.account : {account:"dd"};
-      this.$forceUpdate();
-    },
     handleLogout: function(){
-      console.log(this.isAuthenticated);
-      console.log("event :: logout");
-      this.isAuthenticated = auth.logout();
-      this.$forceUpdate();
+      this.$store.dispatch('logout');
+      this.$router.push('/')
     }
   },
-  mounted(){
-    if(localStorage.email)
-      this.isAuthenticated = auth.getAccount(localStorage.email, localStorage.password)
-  },
+  created(){
+    this.$http.interceptors.response.use(undefined, function (err) {
+      return new Promise(function () {
+        if (err.status === 401 && err.config && !err.config.__isRetryRequest) {
+          this.$store.dispatch('logout')
+        }
+        throw err;
+      });
+    });
+  }
 }
 </script>
 
@@ -59,5 +46,11 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+#nav {
+  text-align: end;
+}
+#logoutButton {
+  width: 60px;
 }
 </style>

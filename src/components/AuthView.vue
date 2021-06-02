@@ -29,7 +29,13 @@
                             />
                         </div>
                     </fieldset>
-                    <input type="submit" class="k-button k-primary" value="Se Connecter" />
+                    <div class="form-row" v-if="status === 'error'">
+                        Adresse email et/ou mot de passe incorrect!
+                    </div>
+                    <button type="submit" class="k-button k-primary">
+                        <span v-if="status === 'loading'" >Connexion en cours ...</span>
+                        <span v-else>Connexion</span>
+                    </button>
                 </form>
             </div>
         </div>
@@ -39,7 +45,7 @@
 
 <script>
 import { Input } from '@progress/kendo-vue-inputs';
-import * as auth from '../services/authentification'
+import { mapState } from 'vuex'
 
 export default {
     name: "AuthView",
@@ -54,9 +60,19 @@ export default {
     },
     methods: {
         handleSubmit: function() {
-            let accountData = auth.getAccount(this.email, this.password);
-            return this.$emit("submit", { account: accountData });
+            let self = this
+            this.$store.dispatch('login', {
+                email: this.email,
+                password: this.password,
+            }).then(function (){
+                self.$router.push('Scheduler')
+            }, function (error){
+                console.log(error);
+            });
         }
+    },
+    computed: {
+        ...mapState(['status'])
     }
 }
 </script>

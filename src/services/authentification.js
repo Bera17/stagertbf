@@ -1,31 +1,23 @@
-const accounts = [
-    {
-        email:"uyarbera@gmail.com",
-        password:"bera"
-    },
-    {
-        email:"berauyar@gmail.com",
-        password:"areb"
-    }
-]
+import axios from "axios";
 
-const getAccount = (email, password) => {
-    return accounts.find(acc => {
-        if(acc.email === email && acc.password === password){
-            setLocalStorage(acc.email, acc.password);
-            return acc;
-        }
-    })
+const client = axios.create({
+    baseURL: "http://localhost:3100/api/login",
+  });
+
+const login = async (email, password) => {
+    return await client
+            .post('', {email:email, password:password})
+            .then((r)=> r.data);
 }
 
-function setLocalStorage(email, password){
-    localStorage.email=email
-    localStorage.password=password
+const authHeader = () => {
+  let token = localStorage.getItem('token');
+
+  if (token) {
+    return { 'x-access-token': token };
+  } else {
+    return {};
+  }
 }
 
-const logout = () => {
-    localStorage.clear();
-    return null;
-}
-
-export { getAccount, logout}
+export { login, authHeader }

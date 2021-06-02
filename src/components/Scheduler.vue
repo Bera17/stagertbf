@@ -41,7 +41,6 @@
     @dataBound="onDataBound"
   >
   <bc-view @get-metadata-record="getMetaData" />
-  <md-view @get-metadata-record="getMetaData" />
     <kendo-scheduler-resource
       :field="'canalId'"
       :name="'Canaux'"
@@ -90,12 +89,10 @@ import "@progress/kendo-ui/js/kendo.timezones";
 
 import * as canauxService from "../services/canauxApi";
 import BcViewVue from "./BcView.vue";
-import MDViewVue from './MDView.vue';
 
 export default {
   name: "Scheduler",
   components: {
-    "md-view": MDViewVue,//eslint-disable-line
     "bc-view": BcViewVue,//eslint-disable-line
     "kendo-scheduler": Scheduler,
     "kendo-scheduler-view": SchedulerView,
@@ -113,7 +110,6 @@ export default {
                   };
       }
       if (operation !== "read") {
-        //
         return { models: kendo.stringify(data) };
       }
     },

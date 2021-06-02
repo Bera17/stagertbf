@@ -21,15 +21,18 @@
     "@progress/kendo-window-vue-wrapper": "^2021.2.511",
     "axios": "^0.21.1",
     "core-js": "^3.10.0",
+    "es6-promise": "^4.2.8",
     "jquery": "^3.6.0",
     "kendo-ui-core": "^2021.1.330",
     "prettier": "^2.2.1",
     "vue": "^3.0.0",
-    "vue-router": "^4.0.0-0"
+    "vue-router": "^4.0.0-0",
+    "vuex": "^4.0.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-plugin-router": "^4.5.13",
     "@vue/cli-service": "~4.5.0",
     "@vue/compiler-sfc": "^3.0.0",
     "babel-eslint": "^10.1.0",
