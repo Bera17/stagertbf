@@ -1,51 +1,46 @@
 <template>
-<div class="row example-wrapper">
-    <div class="col-xs-12 col-sm-6 offset-sm-3 example-col">
-        <div class="card">
-            <div class="card-block">
-                <form class="k-form" @submit.prevent="handleSubmit">
-                    <fieldset>
-                        <legend>Connexion : </legend>
-                        <div class="mb-3">
-                            <k-input
-                                :name="'email'"
-                                :type="'email'"
-                                v-model="email"
-                                :style="{ width: '100%' }"
-                                :label="'Adresse email'"
-                                :required='true'
-                            />
-                        </div>
-                        <div class="mb-3">
-                            <k-input
-                                :name="'password'"
-                                type="password"
-                                v-model="password"
-                                :style="{ width: '100%' }"
-                                :label="'Password'"
-                                :required="true"
-                                :min-length="6"
-                                :max-length="18"
-                            />
-                        </div>
-                    </fieldset>
-                    <div class="form-row" v-if="status === 'error'">
-                        Adresse email et/ou mot de passe incorrect!
-                    </div>
-                    <button type="submit" class="k-button k-primary">
-                        <span v-if="status === 'loading'" >Connexion en cours ...</span>
-                        <span v-else>Connexion</span>
-                    </button>
-                </form>
+    <div class="divlogin">
+        <form class="k-form" @submit.prevent="handleSubmit">
+            <fieldset>
+                <legend>Connexion : </legend>
+                <div >
+                    <k-input
+                        :name="'email'"
+                        :type="'email'"
+                        v-model="email"
+                        :style="{ width: '100%' }"
+                        :label="'Adresse email'"
+                        :required='true'
+                    />
+                </div>
+                <div >
+                    <k-input
+                        :name="'password'"
+                        type="password"
+                        v-model="password"
+                        :style="{ width: '100%' }"
+                        :label="'Password'"
+                        :required="true"
+                        :min-length="6"
+                        :max-length="18"
+                    />
+                </div>
+            </fieldset>
+            <div class="form-row" v-if="status === 'error'">
+                Adresse email et/ou mot de passe incorrect!
             </div>
-        </div>
+            <button type="submit" class="k-button k-primary">
+                <span v-if="status === 'loading'" >Connexion en cours ...</span>
+                <span v-else>Connexion</span>
+            </button>
+        </form>
     </div>
-</div>
 </template>
 
 <script>
 import { Input } from '@progress/kendo-vue-inputs';
 import { mapState } from 'vuex'
+import '../styles/authView.css'
 
 export default {
     name: "AuthView",
