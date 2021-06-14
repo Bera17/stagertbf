@@ -40,7 +40,7 @@
     @resize="onResize"
     @dataBound="onDataBound"
   >
-  <bc-view @get-metadata-record="getMetaData" />
+    <bc-view @get-metadata-record="getMetaData" />
     <kendo-scheduler-resource
       :field="'canalId'"
       :name="'Canaux'"
@@ -93,7 +93,7 @@ import BcViewVue from "./BcView.vue";
 export default {
   name: "Scheduler",
   components: {
-    "bc-view": BcViewVue,//eslint-disable-line
+    "bc-view": BcViewVue, //eslint-disable-line
     "kendo-scheduler": Scheduler,
     "kendo-scheduler-view": SchedulerView,
     "kendo-scheduler-resource": SchedulerResource,
@@ -102,13 +102,13 @@ export default {
   methods: {
     parameterMap: function (data, operation) {
       console.log("ParameterMap operation " + operation);
-      if(operation === "read"){
-        let scheduler = this.$refs.scheduler.kendoWidget()
-            return{currentDay:{
-                    start:scheduler.view().startDate()
-                    }
-                  };
-      }
+      // if(operation === "read"){
+      //   let scheduler = this.$refs.scheduler.kendoWidget()
+      //       return{currentDay:{
+      //               start:scheduler.view().startDate()
+      //               }
+      //             };
+      // }
       if (operation !== "read") {
         return { models: kendo.stringify(data) };
       }
@@ -174,15 +174,34 @@ export default {
       console.log("Event :: resize");
       this.peutRefresh = false;
     },
-    onEdit: function () {
+    onEdit: function (e) {
       console.log("Event :: edit");
       this.peutRefresh = false;
+
+      this.hideNeverOptionFromRecurrence(e);
       this.initSelectCanaux();
       this.initSelectRestrictions();
       this.initSelectBcTypes();
       this.initSelectPads();
       this.initSelectAssets();
       this.initSelectSeries();
+    },
+    hideNeverOptionFromRecurrence: function (e) {
+      //!\ Si rien n'est selectionné, le scheduler envoie une recurrenceRule infini.
+      // Il faut donc soit le catch coté serveur, soit check les champs avant validation du form
+      const kendoReccurr = e.container
+        .find("[data-role=recurrenceeditor]")
+        .data("kendoRecurrenceEditor");
+      //console.log(kendoReccurr);
+      kendoReccurr.setOptions({
+        change: function (e) {
+          let buttonNever = e.sender._buttonNever;
+          if (buttonNever) {
+            $(buttonNever).prop("checked", false);
+            $(buttonNever[0]).parent().remove();
+          }
+        },
+      });
     },
     initContextMenu: function () {
       let newelement = $(`<ul id="target"></ul>`);
@@ -200,10 +219,10 @@ export default {
               let recordToUpdate = scheduler.dataSource.getByUid(
                 e.target.dataset.uid
               );
-              if(recordToUpdate.etat === "Error"){
+              if (recordToUpdate.etat === "Error") {
                 recordToUpdate.set("etat", "Demarré");
                 scheduler.dataSource.sync();
-              }else {
+              } else {
                 console.log("Ne retry pas");
               }
             },
@@ -473,7 +492,7 @@ export default {
         this.metaEdit()
       );
     },
-    eventsColor: function(){
+    eventsColor: function () {
       let scheduler = this.$refs.scheduler.kendoWidget();
       let view = scheduler.view();
       let events = scheduler.dataSource.view();
@@ -512,38 +531,42 @@ export default {
         scheduler.resources[0].dataSource.data(this.arrayCanaux);
         scheduler.view(scheduler.viewName());
         //Pour la comboBox
-        this.dbCanaux = response
+        this.dbCanaux = response;
       });
     },
     getMetaData: function (data) {
-      this.$refs.scheduler
-        .kendoWidget()
-        .addEvent({ 
-          isAdobe:  data.metaData.IsAdobe,
-          isWeb:  data.metaData.IsWeb,
-          isAvide: data.metaData.IsAvide,
-          isArchive:  data.metaData.IsArchive,
-          isDiffusion:  data.metaData.IsDiffusion,
-          restrictionId:  data.metaData.RestrictionId,
-          descrRestriction:  data.metaData.DescrRestriction,
-          bcTypeId:  data.metaData.BcTypeId,
-          bcUmid:  data.metaData.BcUmid,
-          bcTitle:  data.metaData.BcTitle,
-          bcMemo:  data.metaData.BcMemo,
-          purgeDate:  data.metaData.PurgeDate,
-          padId:  data.metaData.PadId,
-          asset:  data.metaData.Asset,
-          demandeur:  data.metaData.Demandeur,
-          serieId:  data.metaData.SerieId,
-          commentaire:  data.metaData.Commentaire,
-          resume:  data.metaData.Resume          
-          });
+      this.$refs.scheduler.kendoWidget().addEvent({
+        isAdobe: data.metaData.IsAdobe,
+        isWeb: data.metaData.IsWeb,
+        isAvide: data.metaData.IsAvide,
+        isArchive: data.metaData.IsArchive,
+        isDiffusion: data.metaData.IsDiffusion,
+        restrictionId: data.metaData.RestrictionId,
+        descrRestriction: data.metaData.DescrRestriction,
+        bcTypeId: data.metaData.BcTypeId,
+        bcUmid: data.metaData.BcUmid,
+        bcTitle: data.metaData.BcTitle,
+        bcMemo: data.metaData.BcMemo,
+        purgeDate: data.metaData.PurgeDate,
+        padId: data.metaData.PadId,
+        asset: data.metaData.Asset,
+        demandeur: data.metaData.Demandeur,
+        serieId: data.metaData.SerieId,
+        commentaire: data.metaData.Commentaire,
+        resume: data.metaData.Resume,
+      });
     },
-    eventListenerViewChanged: function(){
-        document.querySelectorAll("button.k-button.k-button-icon.k-icon-button.k-nav-prev, button.k-button.k-button-icon.k-icon-button.k-nav-next").forEach(result => 
-          result.addEventListener("click", () => this.$refs.scheduler.kendoWidget().dataSource.read() )
+    eventListenerViewChanged: function () {
+      document
+        .querySelectorAll(
+          "button.k-button.k-button-icon.k-icon-button.k-nav-prev, button.k-button.k-button-icon.k-icon-button.k-nav-next"
         )
-    }
+        .forEach((result) =>
+          result.addEventListener("click", () =>
+            this.$refs.scheduler.kendoWidget().dataSource.read()
+          )
+        );
+    },
   },
   data() {
     let kendoDate = kendo.date.today();

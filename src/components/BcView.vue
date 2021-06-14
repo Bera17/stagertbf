@@ -11,14 +11,16 @@
       @close="toggleDialog"
       @move="handleMove"
     >
-    <ul class="metadataUl">
-      <li class="metadataLi" v-for="(canal, index) in this.datasource"
+      <ul class="metadataUl">
+        <li
+          class="metadataLi"
+          v-for="(canal, index) in this.datasource"
           :key="index"
           @click="emitMetaData(index)"
-      >
-        {{ canal.BcUmid }} -- {{ canal.BcTitle }} -- {{ canal.SerieId }}
-      </li>
-    </ul>
+        >
+          {{ canal.BcUmid }} -- {{ canal.BcTitle }} -- {{ canal.SerieId }}
+        </li>
+      </ul>
     </window>
   </div>
 </template>
@@ -27,7 +29,7 @@
 import { Window } from "@progress/kendo-vue-dialogs";
 import kendo from "@progress/kendo-ui/js/kendo.window"; //eslint-disable-line
 import $ from "jquery"; //eslint-disable-line
-import "../styles/bc.css"
+import "../styles/bc.css";
 
 import * as metadataService from "../services/metadataApi";
 
