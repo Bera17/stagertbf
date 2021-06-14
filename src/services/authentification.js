@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const client = axios.create({
-    baseURL: "http://localhost:3100/api/login",
+    baseURL: "https://localhost:3100/api/login",
   });
 
 const login = async (email, password) => {

@@ -2,7 +2,7 @@ import axios from "axios";
 import { authHeader } from "./authentification";
 
 const client = axios.create({
-    baseURL: "http://localhost:3100/api/metadata",
+    baseURL: "https://localhost:3100/api/metadata",
   });
 
   const retrieve = () => {
